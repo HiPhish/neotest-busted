@@ -1,0 +1,6 @@
+[submodule "test/xdg/local/share/nvim/site/pack/testing/start/neotest"]
+	path = test/xdg/local/share/nvim/site/pack/testing/start/neotest
+	url = https://github.com/nvim-neotest/neotest.git
+[submodule "test/xdg/local/share/nvim/site/pack/testing/start/plenary.nvim"]
+	path = test/xdg/local/share/nvim/site/pack/testing/start/plenary.nvim
+	url = https://github.com/nvim-lua/plenary.nvim.git

@@ -1,0 +1,42 @@
+.. default-role:: code
+
+################
+ Neotest-Busted
+################
+
+> Any sufficiently complicated Lua test framework contains an ad hoc,
+> informally-specified, bug-ridden, slow implementation of half of Busted_.
+
+This is a Neotest_ adapter for Busted_, a Lua test framework.
+
+
+Installation
+############
+
+Install it like any other Neovim plugin.  Requires Neotest to be installed as
+well, and `busted` to be in the `$PATH`.  It does not matter how you install
+Busted; personally I prefer to use Luarocks_.
+
+
+Configuration
+#############
+
+The adapter name is `Busted`.  There is no additional configuration needed
+beyond the usual Neotest configuration.  You can give an explicit path to the
+Busted binary by setting the `g:bustedprg` variable, otherwise the default
+`busted` is used.
+
+
+License
+#######
+
+Licensed under the terms of the MIT (Expat) license.  See the LICENSE_ file for
+details.
+
+
+See also https://github.com/nvim-neotest/neotest-plenary
+
+.. _Busted: https://lunarmodules.github.io/busted/
+.. _Neotest: https://github.com/nvim-neotest/neotest
+.. _Luarocks: https://luarocks.org/
+.. _LICENSE: LICENSE.txt
