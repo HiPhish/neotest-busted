@@ -1,1 +1,7 @@
+# Fake user directory structures
 /test/xdg/local/state/
+test/xdg/local/share/nvim/
+
+
+# Tag file created by Vim
+/doc/tags
