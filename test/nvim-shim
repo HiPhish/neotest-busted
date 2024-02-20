@@ -49,7 +49,7 @@ done
 # the symlink it will be trapped in a cycle.  What we do instead is create the
 # symlink only for the duration of a test session and remove it again
 # afterwards.
-ln -s $(pwd) ${XDG_DATA_HOME}/nvim/site/pack/testing/start/rainbow-delimiters
+ln -s $(pwd) ${XDG_DATA_HOME}/nvim/site/pack/testing/start/neotest-busted
 
 
 if [ -n "$lua_expr" ]; then
@@ -61,6 +61,6 @@ fi
 
 exit_code=$?
 
-rm ${XDG_DATA_HOME}/nvim/site/pack/testing/start/rainbow-delimiters
+rm ${XDG_DATA_HOME}/nvim/site/pack/testing/start/neotest-busted
 
 exit $exit_code

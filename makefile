@@ -23,9 +23,15 @@
 # For more information, please refer to <https://unlicense.org/>
 
 
-.PHONY: check
+.PHONY: check unit-test clean
 
 check: unit-test
 
 unit-test:
 	@eval $$(luarocks path --lua-version 5.1 --bin) && busted --run unit
+
+clean:
+	@rm -rf test/xdg/local/state/nvim/*
+	@rm -rf test/xdg/local/share/nvim/site/pack/testing/start/nvim-treesitter/parser/*
+	@# The symlink might have been left over from a failed test run
+	@rm -f test/xdg/local/share/nvim/site/pack/testing/start/neotest-busted
