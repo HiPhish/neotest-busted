@@ -75,7 +75,44 @@ describe('Discovery of test positions', function()
 		expect_positions(content, expected)
 	end)
 
-	nio.tests.it('Discovers busted tests', function()
+	nio.tests.it('Discovers tests without namespace', function()
+		local content = [[
+			it('Adds two numbers', function()
+				assert.are.equal(5, 2 + 3)
+			end)
+			it('Multiplies two numbers', function()
+				assert.are.equal(6, 2 * 3)
+			end)
+		]]
+		local expected = {
+			{
+				id = tempfile,
+				path = tempfile,
+				name = vim.fn.fnamemodify(tempfile, ':t'),
+				range = { 0, 3, 7, 0 },
+				type = "file"
+			}, {
+				{
+					id = tempfile .. '::Adds two numbers',
+					path = tempfile,
+					name = "Adds two numbers",
+					range = { 0, 3, 2, 7 },
+					type = "test"
+				},
+			}, {
+				{
+					id = tempfile .. "::Multiplies two numbers",
+					path = tempfile,
+					name = "Multiplies two numbers",
+					range = { 3, 3, 5, 7 },
+					type = "test"
+				}
+			},
+		}
+		expect_positions(content, expected)
+	end)
+
+	nio.tests.it('Discovers busted tests inside namespace', function()
 		local content = [[describe('Arithmetic', function()
 				it('Adds two numbers', function()
 					assert.are.equal(5, 2 + 3)
@@ -220,6 +257,54 @@ describe('Discovery of test positions', function()
 					}
 				}
 			},
+		}
+		expect_positions(content, expected)
+	end)
+
+	nio.tests.it('Discovers tests with and without namespace', function()
+		local content = [[
+			it('Adds two numbers', function()
+				assert.are.equal(5, 2 + 3)
+			end)
+			describe('Multiplication', function()
+				it('Multiplies two numbers', function()
+					assert.are.equal(6, 2 * 3)
+				end)
+			end)
+		]]
+		local expected = {
+			{
+				id = tempfile,
+				path = tempfile,
+				name = vim.fn.fnamemodify(tempfile, ':t'),
+				range = { 0, 3, 9, 0 },
+				type = "file"
+			}, {
+				{
+
+					id = tempfile .. '::Adds two numbers',
+					path = tempfile,
+					name = 'Adds two numbers',
+					range = { 0, 3, 2, 7 },
+					type = 'test'
+				},
+			}, {
+				{
+					id = tempfile .. '::Multiplication',
+					path = tempfile,
+					name = 'Multiplication',
+					range = { 3, 3, 7, 7 },
+					type = 'namespace'
+				}, {
+					{
+						id = tempfile .. '::Multiplication::Multiplies two numbers',
+						path = tempfile,
+						name = 'Multiplies two numbers',
+						range = { 4, 4, 6, 8 },
+						type = 'test'
+					},
+				}
+			}
 		}
 		expect_positions(content, expected)
 	end)

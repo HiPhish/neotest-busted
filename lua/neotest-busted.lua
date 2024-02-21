@@ -87,7 +87,7 @@ end
 local function discover_positions(file_path)
 	local opts = {
 		nested_namespaces = true,
-		require_namespaces = true,
+		require_namespaces = false,
 	}
 	return lib.treesitter.parse_positions(file_path, query, opts)
 end
