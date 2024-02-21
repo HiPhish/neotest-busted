@@ -9,6 +9,11 @@
 
 This is a Neotest_ adapter for Busted_, a Lua test framework.
 
+.. warning::
+
+   The configuration file `.busted` contains executable Lua code and will be
+   executed when looking for test files.
+
 
 Installation
 ############

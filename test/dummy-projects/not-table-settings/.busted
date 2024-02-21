@@ -1,0 +1,3 @@
+return 'This should have been a table'
+
+-- vim:ft=lua

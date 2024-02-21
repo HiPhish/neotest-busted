@@ -25,10 +25,13 @@
 
 .PHONY: check unit-test clean
 
-check: unit-test
+check: unit-test integration-test
 
 unit-test:
 	@eval $$(luarocks path --lua-version 5.1 --bin) && busted --run unit
+
+integration-test:
+	@eval $$(luarocks path --lua-version 5.1 --bin) && busted --run integration
 
 clean:
 	@rm -rf test/xdg/local/state/nvim/*

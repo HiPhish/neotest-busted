@@ -28,22 +28,21 @@ local query = [[
 local M = {
 	name = 'Busted',
 	---Searches upwards from the current working directory for a file named
-	--`.busted`.
-	root = lib.files.match_root_pattern('.busted'),
-}
-
-do
-	local conf_file = M.root('.') .. '/.busted'
-	if vim.fn.filereadable(conf_file) then
-		local busted_conf = loadfile(conf_file)()
-		local t = type(busted_conf)
-		if t ~= 'table' then
-			error(string.format('Busted configuration is of type %s, but it needs to be table', t))
+	--`.busted`.  Sets the configuration as a side effect.
+	root = function(path)
+		local result = lib.files.match_root_pattern('.busted')(path)
+		local conf_file = string.format('%s/.busted', result)
+		if vim.fn.filereadable(conf_file) then
+			local busted_conf = loadfile(conf_file)()
+			local t = type(busted_conf)
+			if t ~= 'table' then
+				error(string.format('Busted configuration is of type %s, but it needs to be table', t))
+			end
+			conf.set(busted_conf)
 		end
-		conf.set(busted_conf)
-	end
-end
-
+		return result
+	end,
+}
 
 ---Filter directories when searching for test files
 ---@async
