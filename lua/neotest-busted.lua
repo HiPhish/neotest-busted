@@ -3,6 +3,26 @@ local lib = require 'neotest.lib'
 local conf = require 'neotest-busted.conf'
 
 
+---The Tree-sitter query used to parse test files.
+local query = [[
+;;; Describe-block
+(function_call
+   name: (identifier) @_func_name (#eq? @_func_name "describe")
+   arguments: (arguments
+                (string
+                  content: (string_content) @namespace.name)
+                (function_definition))) @namespace.definition
+
+;;; It-block
+(function_call
+   name: (identifier) @_func_name (#eq? @_func_name "it")
+   arguments: (arguments
+                (string
+                  content: (string_content) @test.name)
+                (function_definition))) @test.definition
+]]
+
+
 ---Neotest adapter for the Busted test runner
 ---@type neotest.Adapter
 local M = {
@@ -66,7 +86,11 @@ end
 ---@param file_path string Absolute file path
 ---@return neotest.Tree | nil
 local function discover_positions(file_path)
-	error 'TODO: not implemented yet'
+	local opts = {
+		nested_namespaces = true,
+		require_namespaces = true,
+	}
+	return lib.treesitter.parse_positions(file_path, query, opts)
 end
 
 ---@param args neotest.RunArgs
