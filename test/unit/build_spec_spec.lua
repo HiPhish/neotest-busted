@@ -48,7 +48,7 @@ describe('Building the test run specification', function()
 			local x, y = 2, 3
 			return add(x, y)
 		]]
-		local expected = {'busted', '--', tempfile}
+		local expected = {'busted', '--output', 'json', '--', tempfile}
 		local args = {
 			strategy = 'integrated',
 			tree = tree
@@ -64,7 +64,7 @@ describe('Building the test run specification', function()
 				assert.is_true(true)
 			end)
 		]]
-		local expected = {'busted', '--filter', 'Fulfills%sa%stautology,%sa%sself%-evident%s100%%%strue%sstatement', '--', tempfile}
+		local expected = {'busted', '--output', 'json', '--filter', 'Fulfills%sa%stautology,%sa%sself%-evident%s100%%%strue%sstatement', '--', tempfile}
 
 		local args = {
 			stategy = 'integrated',
@@ -85,7 +85,7 @@ describe('Building the test run specification', function()
 				end)
 			end)
 		]]
-		local expected = {'busted', '--filter', 'Arithmetic', '--', tempfile}
+		local expected = {'busted', '--output', 'json', '--filter', 'Arithmetic', '--', tempfile}
 
 		local args = {
 			stategy = 'integrated',
@@ -106,7 +106,7 @@ describe('Building the test run specification', function()
 				end)
 			end)
 		]]
-		local expected = {'busted', '--filter', 'Arithmetic%sAdds%stwo%snumbers', '--', tempfile}
+		local expected = {'busted', '--output', 'json', '--filter', 'Arithmetic%sAdds%stwo%snumbers', '--', tempfile}
 
 		local args = {
 			stategy = 'integrated',
@@ -121,7 +121,7 @@ describe('Building the test run specification', function()
 		tempfile = tempdir .. '/test/unit/derp_spec.lua'
 		vim.fn.mkdir(tempdir .. '/test/unit', 'p', 448)  -- 448 = 0o700
 
-		local expected = {'busted', '--run', 'unit', '--', tempfile}
+		local expected = {'busted', '--output', 'json', '--run', 'unit', '--', tempfile}
 		local tree = parse_test [[
 			describe('Arithmetic', function()
 				it('Adds two numbers', function()
