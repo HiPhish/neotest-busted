@@ -4,8 +4,8 @@
  Neotest-Busted
 ################
 
-> Any sufficiently complicated Lua test framework contains an ad hoc,
-> informally-specified, bug-ridden, slow implementation of half of Busted_.
+   Any sufficiently complicated Lua test framework contains an ad hoc,
+   informally-specified, bug-ridden, slow implementation of half of Busted_.
 
 This is a Neotest_ adapter for Busted_, a Lua test framework.
 
