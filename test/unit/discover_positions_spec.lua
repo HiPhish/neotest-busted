@@ -14,7 +14,6 @@ describe('Discovery of test positions', function()
 	end
 
 	before_each(function()
-		TSEnsure('lua')
 		-- Create temporary file
 		tempfile = vim.fn.tempname() .. '.lua'
 	end)

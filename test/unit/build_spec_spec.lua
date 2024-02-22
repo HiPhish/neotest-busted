@@ -20,7 +20,6 @@ describe('Building the test run specification', function()
 	end
 
 	before_each(function()
-		TSEnsure('lua')
 		tempfile = vim.fn.tempname() .. '.lua'  -- Create temporary file
 	end)
 
