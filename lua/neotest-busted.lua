@@ -98,14 +98,13 @@ local M = {
 ---@param root     string  Root directory of project
 ---@return boolean
 local function filter_dir(name, rel_path, root)
-	error 'TODO: not implemented yet'
+	return true  -- 'TODO: not implemented yet'
 end
 
 ---@async
 ---@param file_path string
 ---@return boolean
 local function is_test_file(file_path)
-	local directory = vim.fn.fnamemodify(file_path, ':h')
 	local filename = vim.fn.fnamemodify(file_path, ':t:r')
 	local extension = vim.fn.fnamemodify(file_path, ':e')
 
@@ -113,17 +112,23 @@ local function is_test_file(file_path)
 	-- in the future for Moonscript and Fennel
 	if extension ~= 'lua' then return false end
 
-	-- If a configuration has no root use this value
-	local default_root = (conf.get()._all or {}).ROOT or ''
-	for task, c in pairs(conf.get()) do
-		if task ~= '_all' then
-			local root = c.ROOT or default_root
-			local pattern = c.pattern or '_spec'
-			if vim.startswith(directory, root) and filename:find(pattern) then
-				return true
+	for _, c in pairs(conf.get()) do
+		local roots = c.ROOT
+		local pattern = c.pattern or '_spec'
+		if roots and filename:find(pattern) then
+			for _, root in ipairs(roots) do
+				if is_in_path(root, file_path) then
+					return true
+				end
 			end
 		end
 	end
+
+	local default = conf.get().default
+	if default and not default.ROOTS and filename:find(default.pattern or '_spec') then
+		return true
+	end
+
 	return false
 end
 

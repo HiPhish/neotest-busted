@@ -12,14 +12,14 @@ describe('Test file detection', function()
 			default = {
 			},
 			unit = {
-				ROOT = 'test/unit',
+				ROOT = {'test/unit', 'test/simple'},
 			},
 			e2e = {
-				ROOT = 'test/e2e',
+				ROOT = {'test/e2e'},
 				pattern = '',  -- No special pattern for E2E tests
 			},
 			integration = {
-				ROOT = 'test/integration',
+				ROOT = {'test/integration'},
 				pattern = 'test_%S+',  -- Pytest style
 			}
 		}
