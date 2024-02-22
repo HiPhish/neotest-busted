@@ -1,5 +1,6 @@
 -- See also https://lunarmodules.github.io/busted/#usage
-local lib = require 'neotest.lib'
+local types = require 'neotest.types'
+local lib   = require 'neotest.lib'
 local conf = require 'neotest-busted.conf'
 
 
@@ -175,13 +176,54 @@ local function build_spec(args)
 	}
 end
 
+
+---@param failure table  Entry in the test runner output
+---@return string, neotest.Result
+local function failure_to_result(failure)
+	local key = string.format('%s::%s', failure.trace.short_src, failure.element.name)
+	local result = {
+		status = types.ResultStatus.failed,
+		errors = {
+			{
+				line = failure.trace.linedefined,
+				message = failure.trace.message,
+			}
+		}
+	}
+	return key, result
+end
+
 ---@async
 ---@param spec neotest.RunSpec
----@param result neotest.StrategyResult
+---@param run_result neotest.StrategyResult
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
-local function results(spec, result, tree)
-	error 'TODO: not implemented yet'
+local function results(spec, run_result, tree)
+	local json = vim.json.decode(table.concat(vim.fn.readfile(run_result.output), '\n'))
+	local result = {}
+	for _, success in ipairs(json.successes) do
+		-- This won't work for nested tests; I need a mapping from name (all
+		-- 'describe' and 'it' joined by space) to node ID in the tree because
+		-- there is no way to unambiguously extract the node ID from the name.
+		local key = string.format('%s::%s', success.trace.short_src, success.element.name)
+		result[key] = {status = types.ResultStatus.passed}
+	end
+	for _, failure in ipairs(json.failures) do
+		local k, v = failure_to_result(failure)
+		result[k] = v
+	end
+	for _, failure in ipairs(json.errors) do
+		local k, v = failure_to_result(failure)
+		result[k] = v
+	end
+	for _, pending in ipairs(json.pendings) do
+		local key = string.format('%s::%s', pending.trace.short_src, pending.element.name)
+		result[key] = {
+			status = types.ResultStatus.skipped,
+			short = pending.message,
+		}
+	end
+	return result
 end
 
 M.filter_dir = filter_dir

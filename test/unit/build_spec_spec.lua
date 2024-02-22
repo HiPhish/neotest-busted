@@ -28,7 +28,6 @@ describe('Building the test run specification', function()
 		if vim.fn.filereadable(tempfile) ~= 0 then
 			vim.fn.delete(tempfile)
 		end
-
 	end)
 	it('Returns nothing without a tree', function()
 		local args = {
