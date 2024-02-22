@@ -150,7 +150,7 @@ local function build_spec(args)
 	if not args.tree then return nil end
 	local data = args.tree:data()
 
-	local command = {'busted', '--output', 'json'}
+	local command = {vim.g.bustedprg or 'busted', '--output', 'json'}
 
 	-- The user has selected a specific node inside the file
 	if data.type == 'test' or data.type == 'namespace' then

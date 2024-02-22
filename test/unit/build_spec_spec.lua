@@ -150,4 +150,33 @@ describe('Building the test run specification', function()
 		local spec = assert(adapter.build_spec(args))
 		assert.are.same(expected, spec.command)
 	end)
+
+	describe('Using a custom busted executable', function()
+		before_each(function()
+			vim.g.bustedprg = './test/busted-shim'
+		end)
+		after_each(function()
+			vim.g.bustedprg = nil
+		end)
+
+		nio.tests.it('Uses the custom executable', function()
+			local tree = parse_test [[
+				local function add(x, y)
+					if y == 0 then return x end
+					return add(x + 1, y - 1)
+				end
+
+				local x, y = 2, 3
+				return add(x, y)
+			]]
+			local expected = {'./test/busted-shim', '--output', 'json', '--', tempfile}
+			local args = {
+				strategy = 'integrated',
+				tree = tree
+			}
+			local spec = assert(adapter.build_spec(args))
+			assert.is_not_nil(spec)
+			assert.are.same(expected, spec.command)
+		end)
+	end)
 end)
