@@ -1,5 +1,5 @@
 local adapter = require 'neotest-busted'
-local conf = require 'neotest-busted.conf'
+local conf = require 'neotest-busted._conf'
 
 
 describe('Test file detection', function()

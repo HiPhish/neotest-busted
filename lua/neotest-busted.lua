@@ -1,13 +1,13 @@
 -- See also https://lunarmodules.github.io/busted/#usage
 local lib   = require 'neotest.lib'
-local conf = require 'neotest-busted.conf'
+local conf = require 'neotest-busted._conf'
 
 ---Neotest adapter for the Busted test runner
 local M = {
 	name = 'Busted',
-	is_test_file = require 'neotest-busted.is_test_file',
-	build_spec = require 'neotest-busted.build_spec',
-	results = require 'neotest-busted.results',
+	is_test_file = require 'neotest-busted._is_test_file',
+	build_spec = require 'neotest-busted._build_spec',
+	results = require 'neotest-busted._results',
 }
 
 ---The Tree-sitter query used to parse test files.

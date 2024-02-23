@@ -1,5 +1,5 @@
-local conf = require 'neotest-busted.conf'
-local lib  = require 'neotest-busted.lib'
+local conf = require 'neotest-busted._conf'
+local lib  = require 'neotest-busted._lib'
 
 ---@async
 ---@param file_path string
