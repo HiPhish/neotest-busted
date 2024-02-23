@@ -11,6 +11,9 @@ end)
 
 return function(tempfile)
 	local output = {
+		duration = 0.00017511099940748,
+		pendings = {},
+		successes = {},
 		errors = {},
 		failures = {
 			{
@@ -45,9 +48,6 @@ return function(tempfile)
 				name = 'Always fails'
 			}
 		},
-		pendings = {},
-		duration = 0.00017511099940748,
-		successes = {}
 	}
 
 	local expected_results = {

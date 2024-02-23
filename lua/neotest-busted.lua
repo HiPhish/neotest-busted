@@ -179,8 +179,10 @@ end
 
 ---@param failure table  Entry in the test runner output
 ---@return string, neotest.Result
-local function failure_to_result(failure)
-	local key = string.format('%s::%s', failure.trace.short_src, failure.element.name)
+local function failure_to_result(failure, map)
+	local file = failure.trace.source:sub(2)
+	local name = failure.name
+	local key = map[file][name]
 	local result = {
 		status = types.ResultStatus.failed,
 		errors = {
@@ -193,31 +195,74 @@ local function failure_to_result(failure)
 	return key, result
 end
 
+
+---Builds up a mapping of test files and test names onto tree node IDs.  The
+---indices of the outer table are file names, the indices of the inner tables
+---are names of tests within the corresponding files, the values are node IDs.
+---@param tree neotest.Tree
+---@param acc table<string, table<string, string>>
+---@return table<string, table<string, string>>
+local function tree_to_map(tree, acc)
+	local id = tree:data().id
+	local start, stop = id:find('::', 1, true)
+	local file, name
+	if not start then
+		file, name = id, ''
+	else
+		file = id:sub(1, start - 1)
+		name = id:sub(stop + 1):gsub('::', ' ')
+	end
+
+	if not acc[file] then acc[file] = {} end
+	acc[file][name] = id
+
+	for _, child in ipairs(tree:children()) do
+		tree_to_map(child, acc)
+	end
+
+	return acc
+end
+
+---@param path string  Path to file containing JSON output
+---@return table
+local function decode_result_output(path)
+	-- Assumption: the output will be all one line.  There might be other junk
+	-- on subsequent lines and we don't want that.
+	return vim.json.decode(vim.fn.readfile(path)[1])
+end
+
 ---@async
----@param spec neotest.RunSpec
+---@param _spec neotest.RunSpec
 ---@param run_result neotest.StrategyResult
 ---@param tree neotest.Tree
 ---@return table<string, neotest.Result>
-local function results(spec, run_result, tree)
-	local json = vim.json.decode(table.concat(vim.fn.readfile(run_result.output), '\n'))
+local function results(_spec, run_result, tree)
+	local ok, json = pcall(decode_result_output, run_result.output)
+	if not ok then
+		error(('Failed parsing file %s as JSON.\n%s'):format(run_result.output, json))
+	end
+
+	local map = tree_to_map(tree, {})
 	local result = {}
+
 	for _, success in ipairs(json.successes) do
-		-- This won't work for nested tests; I need a mapping from name (all
-		-- 'describe' and 'it' joined by space) to node ID in the tree because
-		-- there is no way to unambiguously extract the node ID from the name.
-		local key = string.format('%s::%s', success.trace.short_src, success.element.name)
+		local file = success.trace.source:sub(2)
+		local name = success.name
+		local key = map[file][name]
 		result[key] = {status = types.ResultStatus.passed}
 	end
 	for _, failure in ipairs(json.failures) do
-		local k, v = failure_to_result(failure)
+		local k, v = failure_to_result(failure, map)
 		result[k] = v
 	end
 	for _, failure in ipairs(json.errors) do
-		local k, v = failure_to_result(failure)
+		local k, v = failure_to_result(failure, map)
 		result[k] = v
 	end
 	for _, pending in ipairs(json.pendings) do
-		local key = string.format('%s::%s', pending.trace.short_src, pending.element.name)
+		local file = pending.trace.source:sub(2)
+		local name = pending.name
+		local key = map[file][name]
 		result[key] = {
 			status = types.ResultStatus.skipped,
 			short = pending.message,
