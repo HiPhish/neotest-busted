@@ -9,36 +9,42 @@ local writefile = vim.fn.writefile
 describe('Building the test run specification', function()
 	local tempfile
 
-	---@param content string
-	---@param fname   string?  Path to output file (default random file)
-	---@return neotest.Tree
-	local function parse_test(content, fname)
-		fname = fname or tempfile
-		writefile(split(content, '\n'), fname, 's')
-		local result = adapter.discover_positions(fname)
-		return assert(result)
+	---Convenience wrapper which takes care of all common steps and side
+	---effects to produce a Neotest run specification.
+	---
+	---@param content string   Test file content as a string
+	---@param key     string?  Key into the node tree to get the tree of the test
+	---@return neotest.RunSpec
+	local function build_spec(content, key)
+		writefile(split(content, '\n'), tempfile, 's')
+		local tree = nio.tests.with_async_context(adapter.discover_positions, tempfile)
+		local args = {
+			stategy = 'integrated',
+			tree = key and tree:get_key(key) or tree
+		}
+		return assert(adapter.build_spec(args))
 	end
 
-	before_each(function()
-		tempfile = vim.fn.tempname() .. '.lua'  -- Create temporary file
+	before_each(function()  -- Create temporary file
+		tempfile = vim.fn.tempname() .. '.lua'
 	end)
 
-	after_each(function()
-		-- Delete temporary file
+	after_each(function()  -- Delete temporary file
 		if vim.fn.filereadable(tempfile) ~= 0 then
 			vim.fn.delete(tempfile)
 		end
 	end)
+
 	it('Returns nothing without a tree', function()
-		local args = {
+		local spec = adapter.build_spec {
 			strategy = 'integrated',
+			tree = nil
 		}
-		local spec = adapter.build_spec(args)
 		assert.is_nil(spec)
 	end)
 
-	nio.tests.it('Runs file even without tests', function()
-		local tree = parse_test [[
+	it('Runs file even without tests', function()
+		local spec = build_spec [[
 			local function add(x, y)
 				if y == 0 then return x end
 				return add(x + 1, y - 1)
@@ -47,34 +53,30 @@ describe('Building the test run specification', function()
 			local x, y = 2, 3
 			return add(x, y)
 		]]
+
 		local expected = {'busted', '--output', 'json', '--', tempfile}
-		local args = {
-			strategy = 'integrated',
-			tree = tree
-		}
-		local spec = assert(adapter.build_spec(args))
-		assert.is_not_nil(spec)
 		assert.are.same(expected, spec.command)
 	end)
 
-	nio.tests.it('Returns a spec for a standalone test', function()
-		local tree = parse_test [[
+	it('Returns a spec for a standalone test', function()
+		local content = [[
 			it('Fulfills a tautology, a self-evident 100% true statement', function()
 				assert.is_true(true)
 			end)
 		]]
-		local expected = {'busted', '--output', 'json', '--filter', 'Fulfills%sa%stautology,%sa%sself%-evident%s100%%%strue%sstatement', '--', tempfile}
+		local key = tempfile .. '::Fulfills a tautology, a self-evident 100% true statement'
+		local spec = build_spec(content, key)
 
-		local args = {
-			stategy = 'integrated',
-			tree = tree:get_key(tempfile .. '::Fulfills a tautology, a self-evident 100% true statement')
+		local expected = {
+			'busted', '--output', 'json', '--filter',
+			'Fulfills%sa%stautology,%sa%sself%-evident%s100%%%strue%sstatement',
+			'--', tempfile
 		}
-		local spec = assert(adapter.build_spec(args))
 		assert.are.same(expected, spec.command)
 	end)
 
-	nio.tests.it('Returns a spec for a namespace', function()
-		local tree = parse_test [[
+	it('Returns a spec for a namespace', function()
+		local content = [[
 			describe('Arithmetic', function()
 				it('Adds two numbers', function()
 					assert.is.equal(5, 2 + 3)
@@ -84,18 +86,17 @@ describe('Building the test run specification', function()
 				end)
 			end)
 		]]
-		local expected = {'busted', '--output', 'json', '--filter', 'Arithmetic', '--', tempfile}
+		local spec = build_spec(content, tempfile .. '::Arithmetic')
 
-		local args = {
-			stategy = 'integrated',
-			tree = tree:get_key(tempfile .. '::Arithmetic')
+		local expected = {
+			'busted', '--output', 'json', '--filter', 'Arithmetic',
+			'--', tempfile
 		}
-		local spec = assert(adapter.build_spec(args))
 		assert.are.same(expected, spec.command)
 	end)
 
-	nio.tests.it('Returns a spec for a nested test', function()
-		local tree = parse_test [[
+	it('Returns a spec for a nested test', function()
+		local content = [[
 			describe('Arithmetic', function()
 				it('Adds two numbers', function()
 					assert.is.equal(5, 2 + 3)
@@ -105,61 +106,68 @@ describe('Building the test run specification', function()
 				end)
 			end)
 		]]
-		local expected = {'busted', '--output', 'json', '--filter', 'Arithmetic%sAdds%stwo%snumbers', '--', tempfile}
+		local spec = build_spec(content, tempfile .. '::Arithmetic::Adds two numbers')
 
-		local args = {
-			stategy = 'integrated',
-			tree = tree:get_key(tempfile .. '::Arithmetic::Adds two numbers')
+		local expected = {
+			'busted', '--output', 'json',
+			'--filter', 'Arithmetic%sAdds%stwo%snumbers',
+			'--', tempfile
 		}
-		local spec = assert(adapter.build_spec(args))
 		assert.are.same(expected, spec.command)
 	end)
 
-	nio.tests.it('Picks the right taks', function()
-		local tempdir = vim.fn.fnamemodify(tempfile, ':h')
-		tempfile = tempdir .. '/test/unit/derp_spec.lua'
-		vim.fn.mkdir(tempdir .. '/test/unit', 'p', 448)  -- 448 = 0o700
+	describe('Using custom configuration', function()
+		local old_config
 
-		local expected = {'busted', '--output', 'json', '--run', 'unit', '--', tempfile}
-		local tree = parse_test [[
-			describe('Arithmetic', function()
-				it('Adds two numbers', function()
-					assert.is.equal(5, 2 + 3)
+		before_each(function()  -- Inject new tempfile and config
+			old_config = conf.get()
+			local tempdir = vim.fn.fnamemodify(tempfile, ':h')
+			tempfile = tempdir .. '/test/unit/derp_spec.lua'
+			vim.fn.mkdir(tempdir .. '/test/unit', 'p', 448)  -- 448 = 0o700
+			conf.set {
+				unit = {
+					-- NOTE: there can be multiple roots
+					ROOT = {tempdir .. '/test/simple', tempdir .. '/test/unit/'}
+				},
+				integration = {
+					ROOT = {'./test/integration/'}
+				},
+			}
+		end)
+
+		after_each(function()  -- Restore old config
+			conf.set(old_config)
+		end)
+
+		it('Picks the right taks', function()
+			local spec = build_spec [[
+				describe('Arithmetic', function()
+					it('Adds two numbers', function()
+						assert.is.equal(5, 2 + 3)
+					end)
+					it('Multiplies two numbers', function()
+						assert.is.equal(6, 2 * 3)
+					end)
 				end)
-				it('Multiplies two numbers', function()
-					assert.is.equal(6, 2 * 3)
-				end)
-			end)
-		]]
+			]]
 
-		conf.set {
-			unit = {
-				-- NOTE: there can be multiple roots
-				ROOT = {tempdir .. '/test/simple', tempdir .. '/test/unit/'}
-			},
-			integration = {
-				ROOT = {'./test/integration/'}
-			},
-		}
-
-		local args = {
-			stategy = 'integrated',
-			tree = tree
-		}
-		local spec = assert(adapter.build_spec(args))
-		assert.are.same(expected, spec.command)
+			local expected = {'busted', '--output', 'json', '--run', 'unit', '--', tempfile}
+			assert.are.same(expected, spec.command)
+		end)
 	end)
+
 
 	describe('Using a custom busted executable', function()
 		before_each(function()
 			vim.g.bustedprg = './test/busted-shim'
 		end)
+
 		after_each(function()
 			vim.g.bustedprg = nil
 		end)
 
-		nio.tests.it('Uses the custom executable', function()
-			local tree = parse_test [[
+		it('Uses the custom executable', function()
+			local spec = build_spec [[
 				local function add(x, y)
 					if y == 0 then return x end
 					return add(x + 1, y - 1)
@@ -168,13 +176,8 @@ describe('Building the test run specification', function()
 				local x, y = 2, 3
 				return add(x, y)
 			]]
+
 			local expected = {'./test/busted-shim', '--output', 'json', '--', tempfile}
-			local args = {
-				strategy = 'integrated',
-				tree = tree
-			}
-			local spec = assert(adapter.build_spec(args))
-			assert.is_not_nil(spec)
 			assert.are.same(expected, spec.command)
 		end)
 	end)

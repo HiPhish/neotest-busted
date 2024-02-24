@@ -47,7 +47,7 @@ return function(tempfile)
 					name = 'Always fails',
 					descriptor = 'it'
 				},
-				message = 'test/unit/dummy_spec.lua:3: Expected objects to be the same.\nPassed in:\n(boolean) false\nExpected:\n(boolean) true',
+				message = ('%s:3: Expected objects to be the same.\nPassed in:\n(boolean) false\nExpected:\n(boolean) true'):format(tempfile),
 				name = 'A test Always fails'
 			}
 		},

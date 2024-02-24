@@ -9,23 +9,22 @@ describe('Discovery of test positions', function()
 
 	local function expect_positions(content, expected)
 		writefile(split(content, '\n'), tempfile, 's')
-		local result = adapter.discover_positions(tempfile):to_list()
+		local tree = nio.tests.with_async_context(adapter.discover_positions, tempfile)
+		local result = tree:to_list()
 		assert.are.same(expected, result)
 	end
 
-	before_each(function()
-		-- Create temporary file
+	before_each(function()  -- Create temporary file
 		tempfile = vim.fn.tempname() .. '.lua'
 	end)
 
-	after_each(function()
-		-- Delete temporary file
+	after_each(function()  -- Delete temporary file
 		if vim.fn.filereadable(tempfile) ~= 0 then
 			vim.fn.delete(tempfile)
 		end
 	end)
 
-	nio.tests.it('Discovers nothing in an empty file', function()
+	it('Discovers nothing in an empty file', function()
 		local expected = {
 			{
 				id = tempfile,
@@ -38,7 +37,7 @@ describe('Discovery of test positions', function()
 		expect_positions('', expected)
 	end)
 
-	nio.tests.it('Discovers nothing in an whitespace file', function()
+	it('Discovers nothing in an whitespace file', function()
 		local content ='     \n     \n    \n   '
 		local expected = {
 			{
@@ -52,7 +51,7 @@ describe('Discovery of test positions', function()
 		expect_positions(content, expected)
 	end)
 
-	nio.tests.it('Discovers nothing in ordinary Lua script', function()
+	it('Discovers nothing in ordinary Lua script', function()
 		local content = [[
 			local function add(x, y)
 				if y == 0 then return x end
@@ -74,7 +73,7 @@ describe('Discovery of test positions', function()
 		expect_positions(content, expected)
 	end)
 
-	nio.tests.it('Discovers tests without namespace', function()
+	it('Discovers tests without namespace', function()
 		local content = [[
 			it('Adds two numbers', function()
 				assert.are.equal(5, 2 + 3)
@@ -111,7 +110,7 @@ describe('Discovery of test positions', function()
 		expect_positions(content, expected)
 	end)
 
-	nio.tests.it('Discovers tests using nio.tests.it', function()
+	it('Discovers tests using nio.tests.it', function()
 		local content = [[
 			nio.tests.it('Adds two numbers', function()
 				assert.are.equal(5, 2 + 3)
@@ -148,7 +147,7 @@ describe('Discovery of test positions', function()
 		expect_positions(content, expected)
 	end)
 
-	nio.tests.it('Discovers busted tests inside namespace', function()
+	it('Discovers busted tests inside namespace', function()
 		local content = [[describe('Arithmetic', function()
 				it('Adds two numbers', function()
 					assert.are.equal(5, 2 + 3)
@@ -194,7 +193,7 @@ describe('Discovery of test positions', function()
 		expect_positions(content, expected)
 	end)
 
-	nio.tests.it('Discovers nested namespaces', function()
+	it('Discovers nested namespaces', function()
 		local content = [[
 			describe('Arithmetic', function()
 				describe('Additive', function()
@@ -240,7 +239,7 @@ describe('Discovery of test positions', function()
 		expect_positions(content, expected)
 	end)
 
-	nio.tests.it('Discovers parallel namespaces', function()
+	it('Discovers parallel namespaces', function()
 		local content = [[
 			describe('Additive Arithmetic', function()
 				it('Adds two numbers', function()
@@ -297,7 +296,7 @@ describe('Discovery of test positions', function()
 		expect_positions(content, expected)
 	end)
 
-	nio.tests.it('Discovers tests with and without namespace', function()
+	it('Discovers tests with and without namespace', function()
 		local content = [[
 			it('Adds two numbers', function()
 				assert.are.equal(5, 2 + 3)

@@ -5,8 +5,7 @@ local conf = require 'neotest-busted._conf'
 describe('Test file detection', function()
 	local original_conf = conf.get()
 
-	before_each(function()
-		-- Inject a fake configuration
+	before_each(function()  -- Inject a fake configuration
 		conf.set {
 			_all = {},
 			default = {

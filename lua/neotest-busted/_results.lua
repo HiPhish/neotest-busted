@@ -14,7 +14,7 @@ end
 ---@param failure table  Entry in the test runner output
 ---@return string key, neotest.Result result  The node ID and the result item
 local function failure_to_result(failure, map)
-	local file = failure.trace.source:sub(2)
+	local file = failure.element.trace.source:sub(2)
 	local name = failure.name
 	local key = map[file][name]
 	local result = {
@@ -22,7 +22,7 @@ local function failure_to_result(failure, map)
 		errors = {
 			{
 				line = failure.trace.linedefined,
-				message = failure.trace.message,
+				message = failure.message,
 			}
 		}
 	}

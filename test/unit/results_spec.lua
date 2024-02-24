@@ -33,7 +33,7 @@ describe('Result from running busted', function()
 		}
 
 		vim.fn.writefile(split(content, '\n'), testfile, 's')
-		local tree = assert(adapter.discover_positions(testfile))
+		local tree = assert(nio.tests.with_async_context(adapter.discover_positions, testfile))
 
 		-- We need to write the output to an actual file for the `results`
 		-- function
@@ -57,47 +57,47 @@ describe('Result from running busted', function()
 		end
 	end)
 
-	nio.tests.it('Is empty when there are no tests', function()
+	it('Is empty when there are no tests', function()
 		local expected, results = compute_test_results('empty')
 		assert.are.same(expected, results)
 	end)
 
-	nio.tests.it('Contains a success for a single test', function()
+	it('Contains a success for a single test', function()
 		local expected, results = compute_test_results('single-standalone-success')
 		assert.are.same(expected, results)
 	end)
 
-	nio.tests.it('Contains a failure for a single failure', function()
+	it('Contains a failure for a single failure', function()
 		local expected, results = compute_test_results('single-standalone-failure')
 		assert.are.same(expected, results)
 	end)
 
-	nio.tests.it('Contains a failure for a single error', function()
+	it('Contains a failure for a single error', function()
 		local expected, results = compute_test_results('single-standalone-error')
 		assert.are.same(expected, results)
 	end)
 
-	nio.tests.it('Contains a skip for a single pending test', function()
+	it('Contains a skip for a single pending test', function()
 		local expected, results = compute_test_results('single-standalone-pending')
 		assert.are.same(expected, results)
 	end)
 
-	nio.tests.it('Contains a success for a nested success', function()
+	it('Contains a success for a nested success', function()
 		local expected, results = compute_test_results('single-nested-success')
 		assert.are.same(expected, results)
 	end)
 
-	nio.tests.it('Contains a failure for a nested failure', function()
+	it('Contains a failure for a nested failure', function()
 		local expected, results = compute_test_results('single-nested-failure')
 		assert.are.same(expected, results)
 	end)
 
-	nio.tests.it('Contains a failure for a nested error', function()
+	it('Contains a failure for a nested error', function()
 		local expected, results = compute_test_results('single-nested-error')
 		assert.are.same(expected, results)
 	end)
 
-	nio.tests.it('Contains a failure for a nested pending', function()
+	it('Contains a failure for a nested pending', function()
 		local expected, results = compute_test_results('single-nested-pending')
 		assert.are.same(expected, results)
 	end)
