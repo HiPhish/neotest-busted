@@ -28,6 +28,15 @@ local query = [[
                 (string
                   content: (string_content) @test.name)
                 (function_definition))) @test.definition
+
+;;; It-block from other frameworks like Neotest's 'nio.tests.it'
+(function_call
+   name: (dot_index_expression
+           field: (identifier) @_func_name (#eq? @_func_name "it"))
+   arguments: (arguments
+                (string
+                  content: (string_content) @test.name)
+                (function_definition))) @test.definition
 ]]
 
 ---Given a file path, parse all the tests within it.
