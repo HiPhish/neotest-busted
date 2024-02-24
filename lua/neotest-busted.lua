@@ -1,5 +1,5 @@
 -- See also https://lunarmodules.github.io/busted/#usage
-local lib   = require 'neotest.lib'
+local lib  = require 'neotest.lib'
 local conf = require 'neotest-busted._conf'
 
 ---Neotest adapter for the Busted test runner
@@ -8,6 +8,7 @@ local M = {
 	is_test_file = require 'neotest-busted._is_test_file',
 	build_spec = require 'neotest-busted._build_spec',
 	results = require 'neotest-busted._results',
+	filter_dir = require 'neotest-busted._filter_dir',
 }
 
 ---The Tree-sitter query used to parse test files.
@@ -41,24 +42,13 @@ function M.discover_positions(file_path)
 	return lib.treesitter.parse_positions(file_path, query, opts)
 end
 
-
----Filter directories when searching for test files
----@async
----@param name     string  Name of directory
----@param rel_path string  Path to directory, relative to root
----@param root     string  Root directory of project
----@return boolean
-function M.filter_dir(name, rel_path, root)
-	return true  -- 'TODO: not implemented yet'
-end
-
-
 ---Searches upwards from the current working directory for a file named
 --`.busted`.  Sets the configuration as a side effect.
 ---@param path string
 ---@return string?
 function M.root(path)
 	local result = lib.files.match_root_pattern('.busted')(path)
+	if not result then return end
 	local conf_file = string.format('%s/.busted', result)
 	if vim.fn.filereadable(conf_file) then
 		local busted_conf = loadfile(conf_file)()
