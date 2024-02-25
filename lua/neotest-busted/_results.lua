@@ -1,13 +1,72 @@
 local types = require 'neotest.types'
+local writefile = vim.fn.writefile
 
 
 ---Decode the file under the given path to a suitable test output structure.
+---
+---As a side effect the contents of the output file are overwritten with a
+---human-readable representation of the output.  The content of the output file
+---will be displayed in the Neotest UI, so we want it to be pleasant to read.
 ---@param path string  Path to file containing JSON output
 ---@return table output  Arbitrary JSON data from the output
 local function decode_result_output(path)
 	-- Assumption: the output will be all one line.  There might be other junk
 	-- on subsequent lines and we don't want that.
-	return vim.json.decode(vim.fn.readfile(path)[1])
+	local result = vim.json.decode(vim.fn.readfile(path)[1])
+
+	-- Write a human-readable representation of the test result to the output
+	-- file. The output file contains JSON which we convert into regular text.
+	-- The original contents will be overwritten.
+	--
+	-- See also:
+	-- https://github.com/lunarmodules/busted/blob/master/busted/outputHandlers/plainTerminal.lua
+
+	local success  = result.successes
+	local failures = result.failures
+	local errors   = result.errors
+	local pendings = result.pendings
+
+	local icons = ('%s%s%s%s'):format(
+		string.rep('+', #success),
+		string.rep('-', #failures),
+		string.rep('*', #errors),
+		string.rep('.', #pendings)
+	)
+	local summary = ('%d successes / %d failures / %d errors / %d pending : %d seconds\n')
+		:format(#success, #failures, #errors, #pendings, result.duration)
+	writefile({icons, summary, ''}, path, 'S')
+
+	for _, pending in ipairs(pendings) do
+		local content = {
+			('Pending -> %s @ %d'):format(pending.trace.short_src, pending.trace.currentline),
+			pending.name,
+		}
+		writefile(content, path, 'Sa')
+		writefile(vim.split(pending.message, '\n'), path, 'Sa')
+		writefile({''}, path, 'Sa')
+	end
+
+	for _, failure in ipairs(failures) do
+		local content = {
+			('Failure -> %s @ %d'):format(failure.element.trace.short_src, failure.element.trace.currentline),
+			failure.name,
+		}
+		writefile(content, path, 'Sa')
+		writefile(vim.split(failure.message, '\n'), path, 'Sa')
+		writefile({''}, path, 'Sa')
+	end
+
+	for _, err in ipairs(errors) do
+		local content = {
+			('Error -> %s @ %d'):format(err.element.trace.short_src, err.element.trace.currentline),
+			err.name,
+		}
+		writefile(content, path, 'Sa')
+		writefile(vim.split(err.message, '\n'), path, 'Sa')
+		writefile({''}, path, 'Sa')
+	end
+
+	return result
 end
 
 ---Convert a test failure entry to a result item.
