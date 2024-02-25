@@ -71,7 +71,7 @@ function M.root(path)
 	local result = lib.files.match_root_pattern('.busted')(path)
 	if not result then return end
 	local conf_file = string.format('%s/.busted', result)
-	if vim.fn.filereadable(conf_file) then
+	if vim.fn.filereadable(conf_file) and vim.secure.read(conf_file) then
 		local busted_conf = loadfile(conf_file)()
 		local t = type(busted_conf)
 		if t ~= 'table' then

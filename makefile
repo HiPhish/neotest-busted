@@ -34,7 +34,8 @@ integration-test:
 	@./test/busted --run integration
 
 clean:
-	@rm -rf test/xdg/local/state/nvim/*
+	@# Delete everything except for the trust file
+	@for f in test/xdg/local/state/nvim/*; do ([ "$$(basename $$f)" != 'trust' ] && rm -r "$$f") || true; done
 	@rm -rf test/xdg/local/share/nvim/site/pack/testing/start/nvim-treesitter/parser/*
 	@# The symlink might have been left over from a failed test run
 	@rm -f test/xdg/local/share/nvim/site/pack/testing/start/neotest-busted
