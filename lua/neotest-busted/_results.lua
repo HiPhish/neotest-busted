@@ -22,7 +22,10 @@ local function failure_to_result(failure, map)
 		errors = {
 			{
 				line = failure.trace.linedefined,
-				message = failure.message,
+				-- Strip all escape character sequences.  It would be cool if
+				-- we could convert escape sequences to extmarks, but I don't
+				-- know if this is really feasible.
+				message = failure.message:gsub('\027[^m]*m', ''),
 			}
 		}
 	}
