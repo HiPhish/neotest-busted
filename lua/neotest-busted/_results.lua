@@ -130,7 +130,20 @@ return function(_spec, run_result, tree)
 		error(('Failed parsing file %s as JSON.\n%s'):format(run_result.output, json))
 	end
 
-	local map = tree_to_map(tree, {})
+	-- Need to travel up the tree until the file node and add all before_each
+	-- and after_each to the map.  Why?  Suppose we run a test directly, then
+	-- any before/after functions will be run and might throw errors, but they
+	-- won't be included in the map.  If they then do throw an error there will
+	-- be no entry in the map for them.
+	local file_tree = tree
+	do
+		local parent = file_tree:parent()
+		while parent and parent:data().type ~= 'dir' do
+			file_tree = parent
+			parent = file_tree:parent()
+		end
+	end
+	local map = tree_to_map(file_tree, {})
 	local result = {}
 
 	-- Handle the different types of output items

@@ -2,7 +2,7 @@ local conf = require 'neotest-busted._conf'
 local lib  = require 'neotest-busted._lib'
 
 
----Collects the name of a node and all its ancestors in order from outer-mods
+---Collects the name of a node and all its ancestors in order from outer-most
 ---down to the given node.
 ---@param node  neotest.Tree  Current Neotest node
 ---@param names string[]      Collected node names so far
@@ -41,15 +41,16 @@ end
 ---@param args neotest.RunArgs
 ---@return nil | neotest.RunSpec | neotest.RunSpec[]
 return function(args)
-	if not args.tree then return nil end
-	local data = args.tree:data()
+	local tree = args.tree
+	if not tree then return nil end
+	local data = tree:data()
 
 	local command = {vim.g.bustedprg or 'busted', '--output', 'json'}
 
 	-- The user has selected a specific node inside the file
 	if data.type == 'test' or data.type == 'namespace' then
 		-- Names joined by space, from outer-most to inner-most
-		local filter = table.concat(collect_node_names(args.tree, {}), ' ')
+		local filter = table.concat(collect_node_names(tree, {}), ' ')
 		-- Escape special characters
 		filter = filter:gsub('%%', '%%%%'):gsub('%s', '%%s'):gsub('-', '%%-')
 
@@ -65,6 +66,6 @@ return function(args)
 	vim.list_extend(command, {'--', data.path})
 
 	return {
-		command = command
+		command = command,
 	}
 end

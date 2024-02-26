@@ -1,5 +1,6 @@
 local nio = require 'nio'
 local adapter = require 'neotest-busted'
+local types = require 'neotest.types'
 
 local split = vim.fn.split
 local writefile = vim.fn.writefile
@@ -68,6 +69,44 @@ describe('Discovery of test positions', function()
 				type = 'file',
 				name = vim.fn.fnamemodify(tempfile, ':t'),
 				range = {0, 3, 8, 0},
+			}
+		}
+		expect_positions(content, expected)
+	end)
+
+	it('Discovers the before_each and after_each function', function()
+		local content = [[
+			before_each(function()
+				assert(true)
+			end)
+			after_each(function()
+				assert(true)
+			end)
+		]]
+		local expected = {
+			{
+				id = tempfile,
+				path = tempfile,
+				name = vim.fn.fnamemodify(tempfile, ':t'),
+				type = 'file',
+				range = {0, 3, 7, 0}
+			}, {
+				{
+					id = tempfile .. '::before_each',
+					path = tempfile,
+					name = 'before_each',
+					range = { 0, 3, 2, 7 },
+					type = types.PositionType.test,
+				},
+			}, {
+				{
+					id = tempfile .. '::after_each',
+					path = tempfile,
+					name = 'after_each',
+					range = { 3, 3, 5, 7 },
+					type = types.PositionType.test,
+				},
+
 			}
 		}
 		expect_positions(content, expected)

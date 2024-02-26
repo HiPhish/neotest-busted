@@ -4,11 +4,11 @@
 local types = require 'neotest.types'
 
 local content = [[
-	it('Always fails', function()
-		local given = {a = 1, b = 3}
-		local expected = {a = 1, b = 2}
-		assert.are.same(expected, given)
-	end)
+it('Always fails', function()
+	local given = {a = 1, b = 3}
+	local expected = {a = 1, b = 2}
+	assert.are.same(expected, given)
+end)
 ]]
 
 

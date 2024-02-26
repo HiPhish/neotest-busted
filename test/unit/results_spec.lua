@@ -24,7 +24,7 @@ describe('Result from running busted', function()
 	---@return table<string, neotest.Result>, table<string, neotest.Result>
 	local function compute_test_results(sample)
 		local sample_file = string.format('test/unit/samples/%s.lua', sample)
-		local content, output, spec, expected = loadfile(sample_file)()(testfile)
+		local content, output, spec, expected, descend = loadfile(sample_file)()(testfile)
 
 		---@type neotest.StrategyResult
 		local strategy_result = {
@@ -33,7 +33,14 @@ describe('Result from running busted', function()
 		}
 
 		vim.fn.writefile(split(content, '\n'), testfile, 's')
-		local tree = assert(nio.tests.with_async_context(adapter.discover_positions, testfile))
+		local file_tree = assert(nio.tests.with_async_context(adapter.discover_positions, testfile))
+		-- The results method receives only the sub-tree of the test to run, so
+		-- we might have to descend down the full file tree to get the sub-tree
+		-- of the test.
+		local tree = file_tree
+		for _, n in ipairs(descend or {}) do
+			tree = tree:children()[n]
+		end
 
 		-- We need to write the output to an actual file for the `results`
 		-- function
@@ -99,6 +106,16 @@ describe('Result from running busted', function()
 
 	it('Contains a failure for a nested pending', function()
 		local expected, results = compute_test_results('single-nested-pending')
+		assert.are.same(expected, results)
+	end)
+
+	it('Contains errors from a parent before_each', function()
+		local expected, results = compute_test_results('error-parent-before_each')
+		assert.are.same(expected, results)
+	end)
+
+	it('Contains errors from a parent after_each', function()
+		local expected, results = compute_test_results('error-parent-after_each')
 		assert.are.same(expected, results)
 	end)
 

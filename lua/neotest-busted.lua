@@ -37,6 +37,18 @@ local query = [[
                 (string
                   content: (string_content) @test.name)
                 (function_definition))) @test.definition
+
+;;; Before-each calls can also fail, so they count as tests
+(function_call
+  name: (identifier) @test.name (#eq? @test.name "before_each")
+  arguments: (arguments
+               (function_definition))) @test.definition
+
+;;; After-each calls can also fail, so they count as tests
+(function_call
+  name: (identifier) @test.name (#eq? @test.name "after_each")
+  arguments: (arguments
+               (function_definition))) @test.definition
 ]]
 
 ---Given a file path, parse all the tests within it.
