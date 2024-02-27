@@ -16,6 +16,9 @@ end
 ---@return boolean
 return function(_name, rel_path, _root)
 	local roots = vim.tbl_flatten(vim.tbl_values(vim.tbl_map(get_root, conf.get())))
+	if #roots == 0 then
+		return true
+	end
 	for _, root in ipairs(roots) do
 		if lib.is_in_path(rel_path, root) or lib.is_in_path(root, rel_path) then
 			return true

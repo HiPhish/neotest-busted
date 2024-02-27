@@ -38,4 +38,19 @@ describe('Filtering of directories', function()
 		local result = adapter.filter_dir('test', 'test', root)
 		assert.is_true(result)
 	end)
+
+	describe('Without roots', function()
+		before_each(function()
+			conf.set {
+				_all = {
+					pattern = '_spec'
+				}
+			}
+		end)
+
+		it('Considers every directory for tests', function()
+			assert.is_true(adapter.filter_dir('src', 'src', root))
+			assert.is_true(adapter.filter_dir('test/unit', 'unit', root))
+		end)
+	end)
 end)
