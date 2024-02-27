@@ -8,6 +8,11 @@ local M = {}
 
 local conf = {}
 
+---Default configuration.  The values are taken from the help text of busted.
+M.default = {
+	pattern = '_spec',
+}
+
 ---Returns the internal settings table.
 ---@return table
 function M.get()

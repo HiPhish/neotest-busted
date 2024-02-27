@@ -69,6 +69,7 @@ end
 ---@return string?
 function M.root(path)
 	local result = lib.files.match_root_pattern('.busted')(path)
+		or vim.fn.fnamemodify('.', ':p')
 	if not result then return end
 	local conf_file = string.format('%s/.busted', result)
 	if vim.fn.filereadable(conf_file) and vim.secure.read(conf_file) then
@@ -78,6 +79,8 @@ function M.root(path)
 			error(string.format('Busted configuration is of type %s, but it needs to be table', t))
 		end
 		conf.set(busted_conf)
+	else
+		conf.set(conf.default)
 	end
 	return result
 end

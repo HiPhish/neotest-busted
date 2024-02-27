@@ -27,6 +27,11 @@ describe('The adapter', function()
 
 	it('Skips configuration if config file is not trusted', function()
 		adapter.root('test/dummy-projects/regular2/')
-		assert.are.same({}, conf.get())
+		assert.are.same(conf.default, conf.get())
+	end)
+
+	it('Uses the default when there is no configuration file', function()
+		adapter.root('test/dummy-projects/no-settings/')
+		assert.are.same(conf.default, conf.get())
 	end)
 end)

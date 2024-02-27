@@ -1,0 +1,2 @@
+This file exists only so that the directory is tracked by version control.  The
+directory is used by one of the tests.
