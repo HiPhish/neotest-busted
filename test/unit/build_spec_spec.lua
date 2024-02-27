@@ -1,6 +1,7 @@
 local adapter = require 'neotest-busted'
 local conf    = require 'neotest-busted._conf'
 local nio = require 'nio'
+local types = require 'neotest.types'
 
 local split = vim.fn.split
 local writefile = vim.fn.writefile
@@ -156,7 +157,6 @@ describe('Building the test run specification', function()
 		end)
 	end)
 
-
 	describe('Using a custom busted executable', function()
 		before_each(function()
 			vim.g.bustedprg = './test/busted-shim'
@@ -179,6 +179,103 @@ describe('Building the test run specification', function()
 
 			local expected = {'./test/busted-shim', '--output', 'json', '--', tempfile}
 			assert.are.same(expected, spec.command)
+		end)
+	end)
+
+	describe('Running multiple roots', function()
+		local old_config
+
+		before_each(function()  -- Inject new configuration
+			old_config = conf.get()
+			conf.set {
+				unit = {
+					ROOT = {'test/unit'},
+				},
+				integration = {
+					ROOT = {'test/integration'},
+				},
+				insource = {
+					ROOT = {'src'},
+				}
+			}
+		end)
+
+		after_each(function()  -- Restore old config
+			conf.set(old_config)
+		end)
+
+		it('Runs all tasks with matching roots', function()
+			local expected = {
+				{command = {'busted', '--output', 'json', '--run', 'integration', '--', 'test/integration'}},
+				{command = {'busted', '--output', 'json', '--run', 'unit', '--', 'test/unit'}},
+			}
+
+			-- A directory tree which contains two more directory trees which
+			-- are part of the roots.
+			local t = {
+				{
+					id = 'test',
+					name = 'test',
+					path = 'test',
+					type = 'dir',
+				}, {
+					{
+						id = 'test/integration',
+						name = 'test/integration',
+						path = 'test/integration',
+						type = 'dir',
+					}, {
+						{
+							id = 'test/integration/foo_spec.lua',
+							name = 'foo_spec.lua',
+							path = 'test/integration/foo_spec.lua',
+							range = {0, 0, 4, 0},
+							type = 'file',
+						}, {
+							{
+								id = 'test/integration/foo_spec.lua::Does something',
+								name = 'Does something',
+								path = 'test/integration/foo_spec.lua',
+								range = {0, 0, 4, 0},
+								type = 'test',
+							}
+						}
+					},
+				}, {
+					{
+						id = 'test/unit',
+						name = 'test/unit',
+						path = 'test/unit',
+						type = 'dir',
+					}, {
+						{
+							id = 'test/unit/foo_spec.lua',
+							name = 'foo_spec.lua',
+							path = 'test/unit/foo_spec.lua',
+							range = {0, 0, 4, 0},
+							type = 'file',
+						}, {
+							{
+								id = 'test/unit/foo_spec.lua::Does something',
+								name = 'Does something',
+								path = 'test/unit/foo_spec.lua',
+								range = {0, 0, 4, 0},
+								type = 'test',
+							}
+						}
+					},
+
+				}
+			}
+			local dir_tree = types.Tree.from_list(t, function(pos) return pos.id end)
+			local spec = assert(adapter.build_spec {tree = dir_tree, strategy = 'integrated'})
+
+			-- NOTE: The order of specifications is undefined, so we need to
+			-- explicitly sort the two list.
+			local function comp(t1, t2) return t1.command[5] < t2.command[5] end
+			table.sort(expected, comp)
+			table.sort(spec    , comp)
+			assert.are.same(expected, spec)
 		end)
 	end)
 end)

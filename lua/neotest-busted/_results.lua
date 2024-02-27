@@ -73,7 +73,7 @@ end
 ---@param failure table  Entry in the test runner output
 ---@return string key, neotest.Result result  The node ID and the result item
 local function failure_to_result(failure, map)
-	local file = failure.element.trace.source:sub(2)
+	local file = vim.fn.fnamemodify(failure.element.trace.source:sub(2), ':p')
 	local name = failure.name
 	local key = map[file][name]
 	local result = {
@@ -148,7 +148,7 @@ return function(_spec, run_result, tree)
 
 	-- Handle the different types of output items
 	for _, success in ipairs(json.successes) do
-		local file = success.trace.source:sub(2)
+		local file = vim.fn.fnamemodify(success.trace.source:sub(2), ':p')
 		local name = success.name
 		local key = map[file][name]
 		result[key] = {status = types.ResultStatus.passed}
@@ -162,7 +162,7 @@ return function(_spec, run_result, tree)
 		result[k] = v
 	end
 	for _, pending in ipairs(json.pendings) do
-		local file = pending.trace.source:sub(2)
+		local file = vim.fn.fnamemodify(pending.trace.source:sub(2), ':p')
 		local name = pending.name
 		local key = map[file][name]
 		result[key] = {
