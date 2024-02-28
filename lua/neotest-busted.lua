@@ -71,7 +71,8 @@ function M.root(path)
 	local result = lib.files.match_root_pattern(vim.g.bustedrc or '.busted')(path)
 		or vim.fn.fnamemodify('.', ':p')
 	if not result then return end
-	conf.set(conf.read(result) or conf.default)
+	local config, bustedrc = conf.read(result)
+	conf.set(config or conf.default, bustedrc)
 	return result
 end
 

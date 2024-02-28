@@ -78,10 +78,14 @@ return function(args)
 		vim.list_extend(command, {'--filter', filter})
 	end
 
+	local config, bustedrc = conf.get()
 	if type == 'test' or type == 'namespace' or type == 'file' then
-		local task = detect_task(conf.get(), data.path)
+		local task = detect_task(config, data.path)
 		if task then
 			vim.list_extend(command, {'--run', task})
+		end
+		if bustedrc then
+			vim.list_extend(command, {'--config-file', bustedrc})
 		end
 		-- Specify the test file exactly to avoid ambiguity
 		vim.list_extend(command, {'--', data.path})
@@ -91,11 +95,14 @@ return function(args)
 		}
 	elseif type == 'dir' then
 		-- For each task collect its roots which are under the directory
-		local tasks = collect_tasks(conf.get(), data.path)
+		local tasks = collect_tasks(config, data.path)
 		local result = {}
 		-- For each task create a separate command with one or more roots
 		for task, roots in pairs(tasks) do
 			local cmd = vim.list_extend({}, command)
+			if bustedrc then
+				vim.list_extend(cmd, {'--config-file', bustedrc})
+			end
 			vim.list_extend(cmd, {'--run', task, '--'})
 			vim.list_extend(cmd, roots)
 			table.insert(result, {command = cmd})

@@ -49,6 +49,10 @@ local M = {}
 ---@type neotestBusted.Config
 local conf = {}
 
+---The current configuration file
+---@type string?
+local bustedrc
+
 ---Default configuration.  The values are taken from the help text of busted.
 ---@type neotestBusted.Config
 M.default = {
@@ -57,7 +61,7 @@ M.default = {
 
 ---Attempts to read the user's configuration from the `.busted` file.
 ---@param root string  Path to the root of the project
----@return neotestBusted.Config? config  Configuration read from file or `nil`
+---@return neotestBusted.Config? config, string? bustedrc
 function M.read(root)
 	local path = string.format('%s/%s', root, vim.g.bustedrc or '.busted')
 	if not vim.fn.filereadable(path) then return end
@@ -68,19 +72,23 @@ function M.read(root)
 	if t ~= 'table' then
 		error(string.format('Busted configuration is of type %s, but it needs to be table', t))
 	end
-	return result
+	return result, path
 end
 
 ---Returns the currently active busted configuration.
----@return neotestBusted.Config
+---@return neotestBusted.Config config, string? bustedrc
 function M.get()
-	return conf
+	return conf, bustedrc
 end
 
----Set the current active busted configuration.
----@param other neotestBusted.Config  New busted configuration
-function M.set(other)
-	conf = other
+---Set the current active busted configuration and settings file.  It is
+---possible to pass configuration without a file, in which case the old value
+---(if any) will be removed.
+---@param config neotestBusted.Config  New busted configuration
+---@param path   string?  Path to the settings file.
+function M.set(config, path)
+	conf = config
+	bustedrc = path
 end
 
 return M

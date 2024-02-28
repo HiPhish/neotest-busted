@@ -122,6 +122,13 @@ describe('Building the test run specification', function()
 
 		before_each(function()  -- Inject new tempfile and config
 			old_config = conf.get()
+		end)
+
+		after_each(function()  -- Restore old config
+			conf.set(old_config)
+		end)
+
+		it('Picks the right task', function()
 			local tempdir = vim.fn.fnamemodify(tempfile, ':h')
 			tempfile = tempdir .. '/test/unit/derp_spec.lua'
 			vim.fn.mkdir(tempdir .. '/test/unit', 'p', 448)  -- 448 = 0o700
@@ -134,13 +141,7 @@ describe('Building the test run specification', function()
 					ROOT = {'./test/integration/'}
 				},
 			}
-		end)
 
-		after_each(function()  -- Restore old config
-			conf.set(old_config)
-		end)
-
-		it('Picks the right taks', function()
 			local spec = build_spec [[
 				describe('Arithmetic', function()
 					it('Adds two numbers', function()
@@ -153,6 +154,13 @@ describe('Building the test run specification', function()
 			]]
 
 			local expected = {'busted', '--output', 'json', '--run', 'unit', '--', tempfile}
+			assert.are.same(expected, spec.command)
+		end)
+
+		it('Specifies the bustedrc file', function()
+			conf.set({_all = {verbose = true}}, 'bustedrc')
+			local spec = build_spec ''
+			local expected = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--', tempfile}
 			assert.are.same(expected, spec.command)
 		end)
 	end)
@@ -187,7 +195,7 @@ describe('Building the test run specification', function()
 
 		before_each(function()  -- Inject new configuration
 			old_config = conf.get()
-			conf.set {
+			local config = {
 				unit = {
 					ROOT = {'test/unit'},
 				},
@@ -198,6 +206,7 @@ describe('Building the test run specification', function()
 					ROOT = {'src'},
 				}
 			}
+			conf.set(config, 'bustedrc')
 		end)
 
 		after_each(function()  -- Restore old config
@@ -206,8 +215,8 @@ describe('Building the test run specification', function()
 
 		it('Runs all tasks with matching roots', function()
 			local expected = {
-				{command = {'busted', '--output', 'json', '--run', 'integration', '--', 'test/integration'}},
-				{command = {'busted', '--output', 'json', '--run', 'unit', '--', 'test/unit'}},
+				{command = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--run', 'integration', '--', 'test/integration'}},
+				{command = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--run', 'unit', '--', 'test/unit'}},
 			}
 
 			-- A directory tree which contains two more directory trees which
@@ -272,7 +281,7 @@ describe('Building the test run specification', function()
 
 			-- NOTE: The order of specifications is undefined, so we need to
 			-- explicitly sort the two list.
-			local function comp(t1, t2) return t1.command[5] < t2.command[5] end
+			local function comp(t1, t2) return t1.command[7] < t2.command[7] end
 			table.sort(expected, comp)
 			table.sort(spec    , comp)
 			assert.are.same(expected, spec)
