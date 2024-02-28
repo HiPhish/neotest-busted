@@ -101,4 +101,24 @@ describe('Test file detection', function()
 			assert.is_false(adapter.is_test_file(fname), 'Source file should have been rejected')
 		end
 	end)
+
+	describe('Without roots', function()
+		before_each(function()
+			conf.set {
+				_all = {
+					pattern = '_spec'
+				}
+			}
+		end)
+
+		it('Rejects source file', function()
+			local result = adapter.is_test_file('src/foo.lua')
+			assert.is_false(result, 'Source file should have been rejected')
+		end)
+
+		it('Detects test file', function()
+			local result = adapter.is_test_file('src/foo_spec.lua')
+			assert.is_true(result, 'Source file should have been rejected')
+		end)
+	end)
 end)
