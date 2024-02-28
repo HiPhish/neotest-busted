@@ -59,7 +59,7 @@ M.default = {
 ---@param root string  Path to the root of the project
 ---@return neotestBusted.Config? config  Configuration read from file or `nil`
 function M.read(root)
-	local path = string.format('%s/.busted', root)
+	local path = string.format('%s/%s', root, vim.g.bustedrc or '.busted')
 	if not vim.fn.filereadable(path) then return end
 	if not vim.secure.read(path) then return end
 

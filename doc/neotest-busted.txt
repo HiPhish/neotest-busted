@@ -49,6 +49,11 @@ g:bustedprg (string)
     same format as a command on the shell, i.e. if you have a script file
     `my-busted` in your project, then the value has to be `./my-busted`.
 
+                                                                  *g:bustedrc*
+g:bustedrc (string)
+    Name of a custom busted configuration file.  The default is `.busted`.
+    The name is a file path relative to the root of the project.
+
 
 ==============================================================================
 RECIPES                                               *neotest-busted-recipes*

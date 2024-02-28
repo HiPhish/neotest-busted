@@ -34,4 +34,17 @@ describe('The adapter', function()
 		adapter.root('test/dummy-projects/no-settings/')
 		assert.are.same(conf.default, conf.get())
 	end)
+
+	describe('Custom bustedrc', function()
+		after_each(function()
+			vim.g.bustedrc = nil
+		end)
+
+		it('Reads from a custom config file', function()
+			vim.g.bustedrc = 'bustedrc'
+			local expected = loadfile('test/dummy-projects/custom-bustedrc/' .. vim.g.bustedrc)()
+			local root = adapter.root('test/dummy-projects/custom-bustedrc/')
+			assert.are.same(expected, conf.get())
+		end)
+	end)
 end)
