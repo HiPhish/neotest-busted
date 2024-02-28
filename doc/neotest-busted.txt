@@ -1,0 +1,342 @@
+*neotest-busted.txt*	Neotest adapter for Busted Lua tests
+
+                                                              *neotest-busted*
+
+Author: Alejandro "HiPhish" Sanchez
+License: MIT
+Version: 0.0.0
+
+
+==============================================================================
+TABLE OF CONTENTS                                    *neotest-busted-contents*
+
+
+1. Table of contents ............................. |neotest-busted-contents|
+2. Introduction .................................. |neotest-busted-intro|
+3. Setup and configuration ....................... |neotest-busted-setup|
+4. Recipes ....................................... |neotest-busted-recipes|
+   4.1 Testing standalone lua module ............. |neotest-busted-standalone|
+   4.2 Multiple tasks ............................ |neotest-busted-tasks|
+   4.3 Testing neovim plugins .................... |neotest-busted-nvim|
+5. Further reading ............................... |neotest-buster-reading|
+
+
+==============================================================================
+INTRODUCTION                                            *neotest-busted-intro*
+
+This Neotest adapter adds support for the busted Lua test framework.  For
+simple standalone scripts everything should work out of the box, the plugin
+will pick up your busted settings.  For more complicated setups (like Neovim
+plugins) you might need some configuration though.
+
+Lua is an embedded language, which means it can run in many different contexts
+and testing might be tricky to set up.  I recommend you try the simple recipes
+from |neotest-busted-recipes| first to first make sure the plugin itself is
+working correctly.
+
+
+==============================================================================
+SETUP AND CONFIGURATION                                 *neotest-busted-setup*
+
+See |neotest.txt| for general information on Neotest.  You will have to add
+this adapter to your configuration, its name is `Busted` (note the upper-case
+`B`).  Adapter-specific configuration is done through global (|:g|) variables.
+
+
+                                                                 *g:bustedprg*
+g:bustedprg (string)
+    Name of the busted binary.  The default is `busted`.  The string has the
+    same format as a command on the shell, i.e. if you have a script file
+    `my-busted` in your project, then the value has to be `./my-busted`.
+
+
+==============================================================================
+RECIPES                                               *neotest-busted-recipes*
+
+This secion contains examples of how you can set up your code for testing.
+These are just suggestions, feel free to experiment with the code and adjust
+it to your project.
+
+
+------------------------------------------------------------------------------
+TESTING STANDALONE LUA MODULE                      *neotest-busted-standalone*
+
+We wanto to test a standalone script which uses the standard Lua API.  The
+project structure is as follows:
+>
+    .
+    └── src
+        ├── arithmetic.lua
+        └── arithmetic_spec.lua
+<
+Here we use a common directory for source code and for tests.  This is not
+necessary, but it makes for a good demonstration because Neotest should ignore
+the source file.
+
+The contents of the files are as follows:
+
+    • Source file `src/arithmetic.lua`: >lua
+        local function add(x, y)
+            return x + y
+        end
+
+        return {add = add}
+<
+    • Test file `src/arithmetic_spec.lua`: >lua
+        local arithmetic = require 'arithmetic'
+
+        it('Adds zero to a number', function()
+            assert.are.equal(1, arithmetic.add(1, 0))
+        end)
+
+        it('Adds two numbers', function()
+            assert.are.equal(5, arithmetic.add(2, 3))
+        end)
+<
+
+Neotest will detect the test file and ignore the source file.
+
+
+------------------------------------------------------------------------------
+MULTIPLE TASKS                                          *neotest-busted-tasks*
+
+Busted lets us group related tests under so-called "tasks", each of which has
+its own settings.  In this example we will have a unit test and an integration
+test.  The project structure is as follows:
+>
+    .
+    ├── .busted
+    ├── src
+    │   └── arithmetic.lua
+    └── test
+        ├── integration
+        │   └── addition.lua
+        └── unit
+            └── arithmetic_spec.lua
+<
+The file contents are as follows:
+
+    • Configuration file `.busted`: >lua
+        return {
+            integration = {
+                pattern = '',
+                ROOT = {'test/integration'},
+            },
+            unit = {
+                ROOT = {'test/unit'},
+            },
+        }
+<
+    • Source file `src/arithmetic.lua`: >lua
+        local function add(x, y)
+            return x + y
+        end
+        return {add = add}
+<
+    • Test file `test/unit/arithmetic_spec.lua`: >lua
+        local arithmetic = require 'arithmetic'
+
+        it('Adds two numbers', function()
+            assert.are.equal(5, arithmetic.add(2, 3))
+        end)
+<
+    • Test file `test/integration/addition.lua`: >lua
+        local arithmetic = require 'arithmetic'
+
+        it('Adds two numbers', function()
+            assert.are.equal(5, arithmetic.add(2, 3))
+        end)
+<
+
+Yes, both tests are the same, I am just using them for illustration here. The
+`.busted` file returns a Lua table which will be used by Neotest to detect
+tests.  Note that this file is executable Lua code, so you have to |trust| it.
+
+Neotest will detect the `test` directory and its two sub-direcotries `unit`
+and `integration`.  The Neotest tree will look like this:
+>
+    Busted
+    ╰╮  test
+     ├╮  integration
+     │╰╮  addition.lua
+     │ ╰─  Adds two numbers
+     ╰╮  unit
+      ╰╮  arithmetic_spec.lua
+       ╰─  Adds two numbers
+<
+You can run an individual task or test, or you can run the entire `test`
+directory.  Running the entire `test` directory will run both tasks in
+parallel, keep that in mind if the tests have side effects.
+
+
+------------------------------------------------------------------------------
+TESTING NEOVIM PLUGINS                                   *neotest-busted-nvim*
+
+Neovim plugins cannot run in the standalone `lua(1)` interpreter because they
+use the Neovim |lua| API.  Instead we need to use Neovim itself as the Lua
+interpreter.  Busted uses the `lua` option to specify an interpreter, and we
+can use the |-l| command-line flag to run Neovim as an interpreter. However,
+we will need a command-line interface adapter (also called a "shim") because
+busted expects the interpreter to have the same command-line options as the
+standalone Lua interpreter.
+
+I will use a small shell script, but there is also a Lua-based adapter called
+nlua (see |neotest-buster-reading|).
+>sh
+    #!/bin/sh
+
+    # Set custom XDG base directory paths to isolate the test Neovim from the
+    # user's own configuration and data files.
+    export XDG_CONFIG_HOME='test/xdg/config/'
+    export XDG_STATE_HOME='test/xdg/local/state/'
+    export XDG_DATA_HOME='test/xdg/local/share/'
+
+    # Handle Lua command-line arguments; not all options are supported
+    while getopts 'ilEve:' opt; do
+	    case $opt in
+		    e) lua_expr=$OPTARG;;
+		    i | l | E) echo "Option '$opt' not supported by shim"; exit 1;;
+	    esac
+    done
+
+    # We need to add this plugin to the custom configuration.  The easiest way
+    # is to create a symlink.  Why not always have a symlink in the project?
+    # The Lua language server will search for Lua files in every directory, so
+    # if it enters the symlink it will be trapped in a cycle.  What we do
+    # instead is create the symlink only for the duration of a test session
+    # and remove it again afterwards.
+
+    # We need separate symlinks if we want to run different tasks in parallel.
+    # Otherwise the one the finishes first would delete the symlink from
+    # underneath the one that is still running.
+    uuid=$(uuidgen)
+    mkdir -p ${XDG_DATA_HOME}/nvim/site/pack/self-${uuid}/start/
+    ln -fs $(pwd) ${XDG_DATA_HOME}/nvim/site/pack/self-${uuid}/start/
+
+    if [ -n "$lua_expr" ]; then
+	    nvim --headless -c "lua $lua_expr" -c 'quitall!'
+    else
+	    # We have to explicitly enable plugins, see ':h -l'
+	    nvim --cmd 'set loadplugins' -l $@
+    fi
+
+    exit_code=$?
+
+    rm -rf ${XDG_DATA_HOME}/nvim/site/pack/self-${uuid}/
+
+    exit $exit_code
+<
+There is quite a lot going on here, so I will break it down into a few key
+points.
+
+    • Set the |xdg| environment variables to achieve isolation from our own
+      Neovim settings
+    • Use `getopts` to parse command-line options; only `-e` is needed
+    • Add a symlink to the plugin itself so we can use it as a dependency (see
+      |packages|)
+    • Run Neovim
+    • Clean up
+
+This shim is a good starting point, but you might have to adjust it to your
+needs depending on your project.  With this out of the way we can set up the
+project structure.
+>
+    .
+    ├── .busted
+    ├── lua
+    │   └── incrementor.lua
+    └── test
+        ├── busted (the busted shim)
+        ├── nvim   (the Neovim shim)
+        └── unit
+            └── incrementor_spec.lua
+<
+There is also a busted shim because depending on how you installed busted you
+might have to run some code first.  Im my example I used Luarocks to install
+busted for Lua 5.1, so my shim looks like this:
+>sh
+    #!/bin/sh
+    eval $(luarocks path --lua-version 5.1 --bin) && busted $@
+<
+Set the |g:bustedprg| variable to `'./test/busted'` to use this shim.  The
+other file contents are as follows:
+
+    • Configuration file `.busted`: >lua
+        return {
+            _all = {
+                lua = './test/nvim'
+            },
+            unit = {
+                ROOT = {'test/unit'},
+            },
+        }
+<
+    • Source file `lua/incrementor.lua`: >lua
+        local M = {}
+
+        function M.list_increment(list, n)
+            local function increment(x)
+                return n + x
+            end
+            return vim.tbl_map(increment, list)
+        end
+
+        return M
+<
+    • Test file `test/unit/incrementor_spec.lua`: >lua
+        local inc = require 'incrementor'
+
+        it('Increments values by one', function()
+            local given = 
+            assert.are.same({2, 3, 4, 5}, inc.list_increment({1, 2, 3, 4}, 1))
+        end)
+
+        it('Increments values by two', function()
+            local given = incrementor.list_increment({1, 2, 3, 4}, 2)
+            assert.are.same({3, 4, 5, 6}, inc.list_increment({1, 2, 3, 4}, 2))
+        end)
+<
+
+There are a couple of points to note:
+
+    • We set the Lua interpreter in `.busted` for all tasks
+    • Our plugin code uses |vim.tbl_map| which is not available in standalone
+      Lua
+    • The shim sets up Neovim so that it can find our custom plugin
+    • All tests run in the same Neovim instance, so be aware of side effects
+
+==============================================================================
+FURTHER READING                                       *neotest-buster-reading*
+
+------------------------------------------------------------------------------
+SOFTWARE
+
+Busted home page:
+    https://lunarmodules.github.io/busted/
+
+Neotest repository:
+    https://github.com/nvim-neotest/neotest
+
+nlua repository:
+    https://github.com/mfussenegger/nlua
+
+nvim-dap repository:
+    https://github.com/mfussenegger/nvim-dap
+
+
+------------------------------------------------------------------------------
+ARTICLES
+
+These are some articles I either wrote myself during development, or that I
+found helpful.
+
+
+Testing Neovim plugins with Busted:
+    https://hiphish.github.io/blog/2024/01/29/testing-neovim-plugins-with-busted/
+
+Using Neovim as Lua interpreter with Luarocks:
+    https://zignar.net/2023/01/21/using-luarocks-as-lua-interpreter-with-luarocks/
+
+
+==============================================================================
+ vim:tw=78:ts=8:sw=4:et:ft=help:norl:

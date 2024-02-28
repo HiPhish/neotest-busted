@@ -32,6 +32,18 @@ Busted binary by setting the `g:bustedprg` variable, otherwise the default
 `busted` is used.
 
 
+Status of the plugin
+####################
+
+It works, but there might be some edge cases that are not handled properly yet.
+Features I have not yet attempted:
+
+- Debugging
+- Watching tests
+- Custom configuration file
+- Coloured output
+
+
 License
 #######
 
