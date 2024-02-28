@@ -44,6 +44,7 @@ describe('The adapter', function()
 			vim.g.bustedrc = 'bustedrc'
 			local expected = loadfile('test/dummy-projects/custom-bustedrc/' .. vim.g.bustedrc)()
 			local root = adapter.root('test/dummy-projects/custom-bustedrc/')
+			assert.are.equal('test/dummy-projects/custom-bustedrc/', root)
 			assert.are.same(expected, conf.get())
 		end)
 	end)
