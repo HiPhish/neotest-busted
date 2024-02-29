@@ -65,6 +65,35 @@ local bustedrc
 ---@type string?
 local root
 
+
+local bustedrc_event, watch_bustedrc = vim.loop.new_fs_event()
+
+---Reload the configuration from file after the configuration file has changed.
+local function on_bustedrc_change(_err, fname, status)
+	print(_err, fname, vim.inspect(status))
+	if not status.change then return end
+	bustedrc_event:stop()
+	watch_bustedrc(fname)
+
+	if not vim.secure.read(fname) then return end
+	local config = loadfile(fname)()
+	local t = type(config)
+	if t ~= 'table' then
+		error(string.format('Busted configuration is of type %s, but it needs to be table', t))
+	end
+	conf = config
+end
+
+
+---Start watching the given file for filesystem events
+---@param fname string
+function watch_bustedrc(fname)
+	bustedrc_event:stop()
+	local cb = vim.schedule_wrap(function(...) on_bustedrc_change(...) end)
+	bustedrc_event:start(fname, {}, cb)
+end
+
+
 ---Attempts to read the user's configuration from the `.busted` file.  Sets
 ---`conf`, `root` and `bustedrc` as side effects.
 ---@param path string  Path to the root of the project
@@ -84,6 +113,7 @@ function M.read(path)
 	conf = config
 	root = path
 	bustedrc = conf_file
+	watch_bustedrc(bustedrc)
 	return config, root, conf_file
 end
 
@@ -103,6 +133,9 @@ end
 function M.set(config, path)
 	conf = config or M.default
 	bustedrc = path
+	if bustedrc then
+		watch_bustedrc(bustedrc)
+	end
 end
 
 return M
