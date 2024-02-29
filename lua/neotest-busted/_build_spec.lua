@@ -78,7 +78,7 @@ return function(args)
 		vim.list_extend(command, {'--filter', filter})
 	end
 
-	local config, bustedrc = conf.get()
+	local config, _, bustedrc = conf.get()
 	if type == 'test' or type == 'namespace' or type == 'file' then
 		local task = detect_task(config, data.path)
 		if task then

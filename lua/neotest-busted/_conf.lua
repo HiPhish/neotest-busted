@@ -45,49 +45,63 @@ local M = {}
 ---@field ['defer-print']      string[]?
 
 
----The current busted configuration.
----@type neotestBusted.Config
-local conf = {}
-
----The current configuration file
----@type string?
-local bustedrc
-
 ---Default configuration.  The values are taken from the help text of busted.
 ---@type neotestBusted.Config
 M.default = {
 	pattern = '_spec',
 }
 
----Attempts to read the user's configuration from the `.busted` file.
----@param root string  Path to the root of the project
----@return neotestBusted.Config? config, string? bustedrc
-function M.read(root)
-	local path = string.format('%s/%s', root, vim.g.bustedrc or '.busted')
-	if not vim.fn.filereadable(path) then return end
-	if not vim.secure.read(path) then return end
 
-	local result = loadfile(path)()
-	local t = type(result)
+---The current busted configuration.
+---@type neotestBusted.Config
+local conf = M.default
+
+---The current configuration file
+---@type string?
+local bustedrc
+
+
+---The current root of the project
+---@type string?
+local root
+
+---Attempts to read the user's configuration from the `.busted` file.  Sets
+---`conf`, `root` and `bustedrc` as side effects.
+---@param path string  Path to the root of the project
+---@return neotestBusted.Config? config
+---@return string? root
+---@return string? bustedrc
+function M.read(path)
+	local conf_file = string.format('%s/%s', path, vim.g.bustedrc or '.busted')
+	if not vim.fn.filereadable(conf_file) then return end
+	if not vim.secure.read(conf_file) then return end
+
+	local config = loadfile(conf_file)()
+	local t = type(config)
 	if t ~= 'table' then
 		error(string.format('Busted configuration is of type %s, but it needs to be table', t))
 	end
-	return result, path
+	conf = config
+	root = path
+	bustedrc = conf_file
+	return config, root, conf_file
 end
 
 ---Returns the currently active busted configuration.
----@return neotestBusted.Config config, string? bustedrc
+---@return neotestBusted.Config config
+---@return string? root
+---@return string? bustedrc
 function M.get()
-	return conf, bustedrc
+	return conf, root, bustedrc
 end
 
 ---Set the current active busted configuration and settings file.  It is
 ---possible to pass configuration without a file, in which case the old value
 ---(if any) will be removed.
----@param config neotestBusted.Config  New busted configuration
+---@param config neotestBusted.Config?  New busted configuration
 ---@param path   string?  Path to the settings file.
 function M.set(config, path)
-	conf = config
+	conf = config or M.default
 	bustedrc = path
 end
 
