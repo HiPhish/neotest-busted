@@ -1,9 +1,38 @@
 local adapter = require 'neotest-busted'
 local conf = require 'neotest-busted._conf'
 
+---Files to add to the trust DB for this test
+local trusted_files = {
+	'test/dummy-projects/custom-bustedrc/bustedrc',
+	'test/dummy-projects/empty-settings/.busted',
+	'test/dummy-projects/not-table-settings/.busted',
+	'test/dummy-projects/regular/.busted',
+}
+
+---Convert a file to the corresponding entry in the trust DB.
+---@param file string
+---@return string
+local function to_truststring(file)
+	local fullpath = vim.fn.fnamemodify(file, ':p')
+	local f = io.open(fullpath, 'r')
+	if not f then error('Cannot read file ' .. file) end
+	local contents = f:read('*a')
+	f:close()
+	local hash = vim.fn.sha256(contents)
+	return string.format('%s %s', hash, fullpath)
+end
+
 describe('The adapter', function()
 	before_each(function()
 		conf.set()
+		local trustfile = vim.fn.stdpath('state') .. '/trust'
+		local trust_content = vim.tbl_map(to_truststring, trusted_files)
+		vim.fn.writefile(trust_content, trustfile, 's')
+	end)
+
+	after_each(function()
+		local trustfile = vim.fn.stdpath('state') .. '/trust'
+		vim.fn.delete(trustfile)
 	end)
 
 	it('Finds the root directory of this plugin', function()

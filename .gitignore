@@ -2,9 +2,5 @@
 /test/xdg/local/state/
 test/xdg/local/share/nvim/
 
-# We cannot automate trusting a file, so we need to persist the trust file
-!/test/xdg/local/state/trust
-
-
 # Tag file created by Vim
 /doc/tags
