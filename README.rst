@@ -9,6 +9,9 @@
 
 This is a Neotest_ adapter for Busted_, a Lua test framework.
 
+.. image:: https://github.com/HiPhish/neotest-busted/assets/4954650/4ca74545-ca95-4e0b-ad32-b8d89c51b4f5
+   :alt: Screenshot of Neovim showing off the Neotest summary with busted tests
+
 .. warning::
 
    The configuration file `.busted` contains executable Lua code and will be
@@ -39,8 +42,6 @@ It works, but there might be some edge cases that are not handled properly yet.
 Features I have not yet attempted:
 
 - Debugging
-- Watching tests
-- Custom configuration file
 - Coloured output
 
 
