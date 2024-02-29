@@ -55,7 +55,9 @@ describe('Building the test run specification', function()
 			return add(x, y)
 		]]
 
-		local expected = {'busted', '--output', 'json', '--', tempfile}
+		local expected = {
+			'busted', '--output', 'json', '--defer-print', '--', tempfile
+		}
 		assert.are.same(expected, spec.command)
 	end)
 
@@ -69,7 +71,7 @@ describe('Building the test run specification', function()
 		local spec = build_spec(content, key)
 
 		local expected = {
-			'busted', '--output', 'json', '--filter',
+			'busted', '--output', 'json', '--defer-print', '--filter',
 			'Fulfills%sa%stautology,%sa%sself%-evident%s100%%%strue%sstatement',
 			'--', tempfile
 		}
@@ -90,7 +92,8 @@ describe('Building the test run specification', function()
 		local spec = build_spec(content, tempfile .. '::Arithmetic')
 
 		local expected = {
-			'busted', '--output', 'json', '--filter', 'Arithmetic',
+			'busted', '--output', 'json', '--defer-print',
+			'--filter', 'Arithmetic',
 			'--', tempfile
 		}
 		assert.are.same(expected, spec.command)
@@ -110,7 +113,7 @@ describe('Building the test run specification', function()
 		local spec = build_spec(content, tempfile .. '::Arithmetic::Adds two numbers')
 
 		local expected = {
-			'busted', '--output', 'json',
+			'busted', '--output', 'json', '--defer-print',
 			'--filter', 'Arithmetic%sAdds%stwo%snumbers',
 			'--', tempfile
 		}
@@ -153,14 +156,20 @@ describe('Building the test run specification', function()
 				end)
 			]]
 
-			local expected = {'busted', '--output', 'json', '--run', 'unit', '--', tempfile}
+			local expected = {
+				'busted', '--output', 'json', '--defer-print',
+				'--run', 'unit', '--', tempfile
+			}
 			assert.are.same(expected, spec.command)
 		end)
 
 		it('Specifies the bustedrc file', function()
 			conf.set({_all = {verbose = true}}, 'bustedrc')
 			local spec = build_spec ''
-			local expected = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--', tempfile}
+			local expected = {
+				'busted', '--output', 'json', '--defer-print',
+				'--config-file', 'bustedrc', '--', tempfile
+			}
 			assert.are.same(expected, spec.command)
 		end)
 	end)
@@ -185,7 +194,10 @@ describe('Building the test run specification', function()
 				return add(x, y)
 			]]
 
-			local expected = {'./test/busted-shim', '--output', 'json', '--', tempfile}
+			local expected = {
+				'./test/busted-shim', '--output', 'json', '--defer-print',
+				'--', tempfile
+			}
 			assert.are.same(expected, spec.command)
 		end)
 	end)
@@ -215,8 +227,19 @@ describe('Building the test run specification', function()
 
 		it('Runs all tasks with matching roots', function()
 			local expected = {
-				{command = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--run', 'integration', '--', 'test/integration'}},
-				{command = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--run', 'unit', '--', 'test/unit'}},
+				{
+					command = {
+						'busted', '--output', 'json', '--defer-print',
+						'--config-file', 'bustedrc', '--run', 'integration',
+						'--', 'test/integration'
+					}
+				}, {
+					command = {
+						'busted', '--output', 'json', '--defer-print',
+						'--config-file', 'bustedrc', '--run', 'unit',
+						'--', 'test/unit'
+					}
+				},
 			}
 
 			-- A directory tree which contains two more directory trees which
@@ -281,7 +304,7 @@ describe('Building the test run specification', function()
 
 			-- NOTE: The order of specifications is undefined, so we need to
 			-- explicitly sort the two list.
-			local function comp(t1, t2) return t1.command[7] < t2.command[7] end
+			local function comp(t1, t2) return t1.command[8] < t2.command[8] end
 			table.sort(expected, comp)
 			table.sort(spec    , comp)
 			assert.are.same(expected, spec)
