@@ -339,6 +339,9 @@ found helpful.
 Testing Neovim plugins with Busted:
     https://hiphish.github.io/blog/2024/01/29/testing-neovim-plugins-with-busted/
 
+Test your Neovim plugins with luarocks & busted
+    https://mrcjkb.dev/posts/2023-06-06-luarocks-test.html
+
 Using Neovim as Lua interpreter with Luarocks:
     https://zignar.net/2023/01/21/using-luarocks-as-lua-interpreter-with-luarocks/
 
