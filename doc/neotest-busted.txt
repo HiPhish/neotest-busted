@@ -328,6 +328,9 @@ nlua repository:
 nvim-dap repository:
     https://github.com/mfussenegger/nvim-dap
 
+Another neotest-busted adapter with a different approach:
+    https://github.com/MisanthropicBit/neotest-busted
+
 
 ------------------------------------------------------------------------------
 ARTICLES

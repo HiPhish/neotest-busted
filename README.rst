@@ -52,7 +52,13 @@ Licensed under the terms of the MIT (Expat) license.  See the LICENSE_ file for
 details.
 
 
-See also https://github.com/nvim-neotest/neotest-plenary
+Alternatives
+############
+
+Here are some other projects with similar goals.
+
+- [MisanthropicBit/neotest-busted](https://github.com/MisanthropicBit/neotest-busted)
+- [nvim-neotest/neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)
 
 .. _Busted: https://lunarmodules.github.io/busted/
 .. _Neotest: https://github.com/nvim-neotest/neotest
