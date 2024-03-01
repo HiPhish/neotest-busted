@@ -10,13 +10,9 @@ local writefile = vim.fn.writefile
 ---@param path string  Path to file containing JSON output
 ---@return table output  Arbitrary JSON data from the output
 local function decode_result_output(path)
-	-- Assumption: the output will be all on the last line.  We defer the
-	-- output, so the test result output should be on the last line, but we
-	-- cannot exclude that there might be other stuff on that line as well.
-	-- This can happen if the user calls `print` and the text does not end in a
-	-- new line.
-	local output = vim.fn.readfile(path)
-	local result = vim.json.decode(output[#output])
+	-- Assumption: the output will be all one line.  There might be other junk
+	-- on subsequent lines and we don't want that.
+	local result = vim.json.decode(vim.fn.readfile(path)[1])
 
 	-- Write a human-readable representation of the test result to the output
 	-- file. The output file contains JSON which we convert into regular text.
