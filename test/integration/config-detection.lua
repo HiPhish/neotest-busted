@@ -23,16 +23,19 @@ local function to_truststring(file)
 end
 
 describe('The adapter', function()
-	before_each(function()
-		conf.set()
+	setup(function()
 		local trustfile = vim.fn.stdpath('state') .. '/trust'
 		local trust_content = vim.tbl_map(to_truststring, trusted_files)
 		vim.fn.writefile(trust_content, trustfile, 's')
 	end)
 
-	after_each(function()
+	teardown(function()
 		local trustfile = vim.fn.stdpath('state') .. '/trust'
 		vim.fn.delete(trustfile)
+	end)
+
+	before_each(function()
+		conf.set()
 	end)
 
 	it('Finds the root directory of this plugin', function()
