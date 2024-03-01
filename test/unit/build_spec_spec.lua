@@ -166,26 +166,21 @@ describe('Building the test run specification', function()
 	end)
 
 	describe('Using a custom busted executable', function()
-		before_each(function()
-			vim.g.bustedprg = './test/busted-shim'
-		end)
-
 		after_each(function()
 			vim.g.bustedprg = nil
 		end)
 
 		it('Uses the custom executable', function()
-			local spec = build_spec [[
-				local function add(x, y)
-					if y == 0 then return x end
-					return add(x + 1, y - 1)
-				end
+			vim.g.bustedprg = './test/busted'
+			local spec = build_spec ''
+			local expected = {'./test/busted', '--output', 'json', '--', tempfile}
+			assert.are.same(expected, spec.command)
+		end)
 
-				local x, y = 2, 3
-				return add(x, y)
-			]]
-
-			local expected = {'./test/busted-shim', '--output', 'json', '--', tempfile}
+		it('Splices in a custom busted command list', function()
+			vim.g.bustedprg = {'busted', '--verbose'}
+			local spec = build_spec ''
+			local expected = {'busted', '--verbose', '--output', 'json', '--', tempfile}
 			assert.are.same(expected, spec.command)
 		end)
 	end)

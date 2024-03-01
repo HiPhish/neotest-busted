@@ -66,7 +66,11 @@ return function(args)
 	local data = tree:data()
 	local type = data.type
 
-	local command = {vim.g.bustedprg or 'busted', '--output', 'json'}
+	local command = vim.tbl_flatten {
+		vim.g.bustedprg or 'busted',
+		'--output',
+		'json'
+	}
 
 	-- The user has selected a specific node inside the file
 	if type == 'test' or type == 'namespace' then

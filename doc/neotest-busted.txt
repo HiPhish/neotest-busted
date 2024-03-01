@@ -41,13 +41,31 @@ SETUP AND CONFIGURATION                                 *neotest-busted-setup*
 See |neotest.txt| for general information on Neotest.  You will have to add
 this adapter to your configuration, its name is `Busted` (note the upper-case
 `B`).  Adapter-specific configuration is done through global (|:g|) variables.
+Example:
+>lua
+    require('neotest').setup {
+        adapters = {
+            require 'neotest-busted'
+        }
+    }
+<
+There are no options, configuration is handled through Vim variables.  You can
+change these variables during runtime.  The defaults should work in most
+cases.
 
 
                                                                  *g:bustedprg*
-g:bustedprg (string)
-    Name of the busted binary.  The default is `busted`.  The string has the
-    same format as a command on the shell, i.e. if you have a script file
-    `my-busted` in your project, then the value has to be `./my-busted`.
+g:bustedprg (string or list of strings)
+    Either the name of the busted binary or a list of the name of the busted
+    binary and any command-line arguments.  The default is `busted`.
+
+    If a string, it has the same format as a command on the shell, i.e. if you
+    have a script file `test/busted` in your project, then the value has to be
+    `./test/busted`.
+
+    If a list you can append any default command-line arguments which will be
+    spliced in directly after the command, e.g. `['busted', '--verbose']`.
+
 
                                                                   *g:bustedrc*
 g:bustedrc (string)
