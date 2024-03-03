@@ -57,10 +57,12 @@ Alternatives
 
 Here are some other projects with similar goals.
 
-- [MisanthropicBit/neotest-busted](https://github.com/MisanthropicBit/neotest-busted)
-- [nvim-neotest/neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)
+- `MisanthropicBit/neotest-busted`_
+- `nvim-neotest/neotest-plenary`_
 
 .. _Busted: https://lunarmodules.github.io/busted/
 .. _Neotest: https://github.com/nvim-neotest/neotest
 .. _Luarocks: https://luarocks.org/
 .. _LICENSE: LICENSE.txt
+.. _`MisanthropicBit/neotest-busted`: https://github.com/MisanthropicBit/neotest-busted
+.. _`nvim-neotest/neotest-plenary`: https://github.com/nvim-neotest/neotest-plenary
