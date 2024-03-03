@@ -58,7 +58,7 @@ return function(tempfile)
 			status = types.ResultStatus.failed,
 			errors = {
 				{
-					line = 1,
+					line = 3,
 					message = ('%s:4: Expected objects to be the same.\nPassed in:\n(table: 0x409a6508) {\n  [a] = 1\n *[b] = 3 }\nExpected:\n(table: 0x409a6568) {\n  [a] = 1\n *[b] = 2 }'):format(tempfile),
 				}
 			}

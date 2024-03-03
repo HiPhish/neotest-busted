@@ -7,7 +7,10 @@ local types = require 'neotest.types'
 local content = [[
 describe('A test', function()
 	it('Always raises an error', function()
+		assert.is_true(true)
+		assert.is_true(true)
 		error('intentional error')
+		assert.is_true(true)
 	end)
 end)
 ]]
@@ -21,36 +24,36 @@ return function(tempfile)
 		errors = {
 			{
 				isError = true,
+				message = ('%s:5: intentional error'):format(tempfile),
+				name = "A test Always raises an error",
 				trace = {
-					traceback = ('\nstack traceback:\n\t%s:2: in function <%s:2>\n'):format(tempfile, tempfile),
+					currentline = 5,
+					lastlinedefined = 7,
 					linedefined = 2,
-					currentline = 3,
-					message = ('%s:3: intentional error'):format(tempfile),
-					lastlinedefined = 4,
+					message = ('%s:5: intentional error'):format(tempfile),
+					traceback = ('\nstack traceback:\n\t%s:5: in function <%s:2>\n'):format(tempfile, tempfile),
 					source = '@' .. tempfile,
-					what = 'Lua',
-					short_src = tempfile
+					short_src = tempfile,
+					what = "Lua"
 				},
 				element = {
-					starttime = 1708711446.9483,
-					starttick = 19813.687664494,
-					trace = {
-						traceback = ('\nstack traceback:\n\t%s:2: in function <%s:2>\n'):format(tempfile, tempfile),
-						linedefined = 1,
-						currentline = 2,
-						message = 'Always raises an error',
-						lastlinedefined = 5,
-						source = '@' .. tempfile,
-						what = 'Lua',
-						short_src = tempfile
-					},
 					attributes = {},
-					name = 'Always raises an error',
-					descriptor = 'it'
+					descriptor = "it",
+					name = "Always raises an error",
+					starttick = 5698.810599464,
+					starttime = 1709468193.4852,
+					trace = {
+						currentline = 2,
+						lastlinedefined = 8,
+						linedefined = 1,
+						traceback = ('\nstack traceback:\n\t%s:2: in function <%s:1>\n'):format(tempfile, tempfile),
+						message = "Always raises an error",
+						source = '@' .. tempfile,
+						short_src = tempfile,
+						what = "Lua"
+					}
 				},
-				message = ('%s:3: intentional error'):format(tempfile),
-				name = 'A test Always raises an error'
-			}
+			},
 		},
 	}
 
@@ -59,8 +62,8 @@ return function(tempfile)
 			status = types.ResultStatus.failed,
 			errors = {
 				{
-					line = 2,
-					message = ('%s:3: intentional error'):format(tempfile),
+					line = 4,
+					message = ('%s:5: intentional error'):format(tempfile),
 				}
 			}
 		}

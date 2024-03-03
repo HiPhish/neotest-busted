@@ -80,7 +80,8 @@ local function failure_to_result(failure, map)
 		status = types.ResultStatus.failed,
 		errors = {
 			{
-				line = failure.trace.linedefined,
+				-- the value is 1-indexed, I need it 0-indexed
+				line = failure.trace.currentline - 1,
 				-- Strip all escape character sequences.  It would be cool if
 				-- we could convert escape sequences to extmarks, but I don't
 				-- know if this is really feasible.
