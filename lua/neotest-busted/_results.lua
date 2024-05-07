@@ -128,7 +128,8 @@ end
 return function(_spec, run_result, tree)
 	local ok, json = pcall(decode_result_output, run_result.output)
 	if not ok then
-		error(('Failed parsing file %s as JSON.\n%s'):format(run_result.output, json))
+		vim.api.nvim_err_writeln(vim.fn.join(vim.fn.readfile(run_result.output), '\n'))
+		return {}
 	end
 
 	-- Need to travel up the tree until the file node and add all before_each
