@@ -68,8 +68,8 @@ end
 ---@param path string
 ---@return string?
 function M.root(path)
-	local result = lib.files.match_root_pattern(vim.g.bustedrc or '.busted')(path)
-		or vim.fn.fnamemodify('.', ':p')
+	local bustedrc = vim.g.bustedrc or '.busted'
+	local result = lib.files.match_root_pattern(bustedrc)(path)
 	if not result then return end
 	conf.read(result)
 	return result

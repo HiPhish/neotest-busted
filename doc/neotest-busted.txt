@@ -53,6 +53,10 @@ There are no options, configuration is handled through Vim variables.  You can
 change these variables during runtime.  The defaults should work in most
 cases.
 
+NOTE: Your project must contain a busted configuration file or else the
+adapter will not recognize your project as a busted project.  See |g:bustedrc|
+for details.
+
 
                                                                  *g:bustedprg*
 g:bustedprg (string or list of strings)
