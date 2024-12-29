@@ -11,7 +11,8 @@ local writefile = vim.fn.writefile
 local function decode_result_output(path)
   -- Assumption: the output will be all one line.  There might be other junk
   -- on subsequent lines and we don't want that.
-  local result = vim.json.decode(vim.fn.readfile(path)[1])
+  local lines = vim.fn.readfile(path)
+  local result = vim.json.decode(lines[#lines])
 
   -- Write a human-readable representation of the test result to the output
   -- file. The output file contains JSON which we convert into regular text.
