@@ -1,5 +1,6 @@
+---@module "neotest"
+
 local conf = require('neotest-busted._conf')
-local lib = require('neotest-busted._lib')
 
 ---Collects the name of a node and all its ancestors in order from outer-most
 ---down to the given node.
