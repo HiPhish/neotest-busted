@@ -44,13 +44,11 @@ local M = {}
 ---@field ['suppress-pending'] string[]?
 ---@field ['defer-print']      string[]?
 
-
 ---Default configuration.  The values are taken from the help text of busted.
 ---@type neotestBusted.Config
 M.default = {
-	pattern = '_spec',
+  pattern = '_spec',
 }
-
 
 ---The current busted configuration.
 ---@type neotestBusted.Config
@@ -60,39 +58,46 @@ local conf = M.default
 ---@type string?
 local bustedrc
 
-
 ---The current root of the project
 ---@type string?
 local root
-
 
 local bustedrc_event, watch_bustedrc = vim.loop.new_fs_event()
 
 ---Reload the configuration from file after the configuration file has changed.
 local function on_bustedrc_change(_err, fname, status)
-	print(_err, fname, vim.inspect(status))
-	if not status.change then return end
-	bustedrc_event:stop()
-	watch_bustedrc(fname)
+  print(_err, fname, vim.inspect(status))
+  if not status.change then
+    return
+  end
+  bustedrc_event:stop()
+  watch_bustedrc(fname)
 
-	if not vim.secure.read(fname) then return end
-	local config = loadfile(fname)()
-	local t = type(config)
-	if t ~= 'table' then
-		error(string.format('Busted configuration is of type %s, but it needs to be table', t))
-	end
-	conf = config
+  if not vim.secure.read(fname) then
+    return
+  end
+  local config = loadfile(fname)()
+  local t = type(config)
+  if t ~= 'table' then
+    error(
+      string.format(
+        'Busted configuration is of type %s, but it needs to be table',
+        t
+      )
+    )
+  end
+  conf = config
 end
-
 
 ---Start watching the given file for filesystem events
 ---@param fname string
 function watch_bustedrc(fname)
-	bustedrc_event:stop()
-	local cb = vim.schedule_wrap(function(...) on_bustedrc_change(...) end)
-	bustedrc_event:start(fname, {}, cb)
+  bustedrc_event:stop()
+  local cb = vim.schedule_wrap(function(...)
+    on_bustedrc_change(...)
+  end)
+  bustedrc_event:start(fname, {}, cb)
 end
-
 
 ---Attempts to read the user's configuration from the `.busted` file.  Sets
 ---`conf`, `root` and `bustedrc` as side effects.
@@ -101,20 +106,29 @@ end
 ---@return string? root
 ---@return string? bustedrc
 function M.read(path)
-	local conf_file = string.format('%s/%s', path, vim.g.bustedrc or '.busted')
-	if not vim.fn.filereadable(conf_file) then return end
-	if not vim.secure.read(conf_file) then return end
+  local conf_file = string.format('%s/%s', path, vim.g.bustedrc or '.busted')
+  if not vim.fn.filereadable(conf_file) then
+    return
+  end
+  if not vim.secure.read(conf_file) then
+    return
+  end
 
-	local config = loadfile(conf_file)()
-	local t = type(config)
-	if t ~= 'table' then
-		error(string.format('Busted configuration is of type %s, but it needs to be table', t))
-	end
-	conf = config
-	root = path
-	bustedrc = conf_file
-	watch_bustedrc(bustedrc)
-	return config, root, conf_file
+  local config = loadfile(conf_file)()
+  local t = type(config)
+  if t ~= 'table' then
+    error(
+      string.format(
+        'Busted configuration is of type %s, but it needs to be table',
+        t
+      )
+    )
+  end
+  conf = config
+  root = path
+  bustedrc = conf_file
+  watch_bustedrc(bustedrc)
+  return config, root, conf_file
 end
 
 ---Returns the currently active busted configuration.
@@ -122,7 +136,7 @@ end
 ---@return string? root
 ---@return string? bustedrc
 function M.get()
-	return conf, root, bustedrc
+  return conf, root, bustedrc
 end
 
 ---Set the current active busted configuration and settings file.  It is
@@ -131,11 +145,11 @@ end
 ---@param config neotestBusted.Config?  New busted configuration
 ---@param path   string?  Path to the settings file.
 function M.set(config, path)
-	conf = config or M.default
-	bustedrc = path
-	if bustedrc then
-		watch_bustedrc(bustedrc)
-	end
+  conf = config or M.default
+  bustedrc = path
+  if bustedrc then
+    watch_bustedrc(bustedrc)
+  end
 end
 
 return M

@@ -1,14 +1,14 @@
 -- See also https://lunarmodules.github.io/busted/#usage
-local lib  = require 'neotest.lib'
-local conf = require 'neotest-busted._conf'
+local conf = require('neotest-busted._conf')
+local lib = require('neotest.lib')
 
 ---Neotest adapter for the Busted test runner
 local M = {
-	name = 'Busted',
-	is_test_file = require 'neotest-busted._is_test_file',
-	build_spec = require 'neotest-busted._build_spec',
-	results = require 'neotest-busted._results',
-	filter_dir = require 'neotest-busted._filter_dir',
+  name = 'Busted',
+  is_test_file = require('neotest-busted._is_test_file'),
+  build_spec = require('neotest-busted._build_spec'),
+  results = require('neotest-busted._results'),
+  filter_dir = require('neotest-busted._filter_dir'),
 }
 
 ---The Tree-sitter query used to parse test files.
@@ -56,11 +56,11 @@ local query = [[
 ---@param file_path string Absolute file path
 ---@return neotest.Tree | nil
 function M.discover_positions(file_path)
-	local opts = {
-		nested_namespaces = true,
-		require_namespaces = false,
-	}
-	return lib.treesitter.parse_positions(file_path, query, opts)
+  local opts = {
+    nested_namespaces = true,
+    require_namespaces = false,
+  }
+  return lib.treesitter.parse_positions(file_path, query, opts)
 end
 
 ---Searches upwards from the current working directory for a file named
@@ -68,11 +68,13 @@ end
 ---@param path string
 ---@return string?
 function M.root(path)
-	local bustedrc = vim.g.bustedrc or '.busted'
-	local result = lib.files.match_root_pattern(bustedrc)(path)
-	if not result then return end
-	conf.read(result)
-	return result
+  local bustedrc = vim.g.bustedrc or '.busted'
+  local result = lib.files.match_root_pattern(bustedrc)(path)
+  if not result then
+    return
+  end
+  conf.read(result)
+  return result
 end
 
 return M

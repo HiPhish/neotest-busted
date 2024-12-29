@@ -6,11 +6,11 @@ local M = {}
 ---@param file_path string  Path of the file
 ---@return boolean
 function M.is_in_path(dir_path, file_path)
-	-- normalize names
-	dir_path = vim.fn.fnamemodify(dir_path, ':p')
-	file_path = vim.fn.fnamemodify(file_path, ':p')
+  -- normalize names
+  dir_path = vim.fn.fnamemodify(dir_path, ':p')
+  file_path = vim.fn.fnamemodify(file_path, ':p')
 
-	return string.find(file_path, dir_path, 1, true) == 1
+  return string.find(file_path, dir_path, 1, true) == 1
 end
 
 return M
