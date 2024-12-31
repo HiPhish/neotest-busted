@@ -26,12 +26,6 @@ local function decode_result_output(path)
   local errors = result.errors
   local pendings = result.pendings
 
-  local icons = ('%s%s%s%s'):format(
-    string.rep('+', #success),
-    string.rep('-', #failures),
-    string.rep('*', #errors),
-    string.rep('.', #pendings)
-  )
   local summary = ('%d successes / %d failures / %d errors / %d pending : %d seconds\n'):format(
     #success,
     #failures,
@@ -39,7 +33,7 @@ local function decode_result_output(path)
     #pendings,
     result.duration
   )
-  writefile({ icons, summary, '' }, path, 'S')
+  writefile({ summary, '' }, path, 'S')
 
   for _, pending in ipairs(pendings) do
     local content = {
