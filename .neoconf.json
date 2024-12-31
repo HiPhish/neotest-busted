@@ -1,0 +1,7 @@
+{
+  "lspconfig": {
+    "lua_ls": {
+      "Lua.workspace.ignoreDir": [".vscode", "test/xdg"]
+    }
+  }
+}
