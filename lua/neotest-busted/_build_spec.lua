@@ -22,7 +22,7 @@ end
 
 ---@param args neotest.RunArgs
 ---@return nil | neotest.RunSpec | neotest.RunSpec[]
-return function(args)
+local function build_spec(args)
   local tree = args.tree
   if not tree then
     return nil
@@ -56,3 +56,5 @@ return function(args)
     command = command,
   }
 end
+
+return build_spec
