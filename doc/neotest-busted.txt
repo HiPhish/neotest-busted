@@ -208,7 +208,9 @@ busted expects the interpreter to have the same command-line options as the
 standalone Lua interpreter.
 
 I will use a small shell script, but there is also a Lua-based adapter called
-nlua (see |neotest-buster-reading|).
+nlua (see |neotest-buster-reading|).  There is a ready-made version of this
+shim called nvim-busted-shims (see |neotest-buster-reading|), you do not need
+to copy this code.
 >sh
     #!/bin/sh
 
@@ -220,36 +222,27 @@ nlua (see |neotest-buster-reading|).
 
     # Handle Lua command-line arguments; not all options are supported
     while getopts 'ilEve:' opt; do
-	    case $opt in
-		    e) lua_expr=$OPTARG;;
-		    i | l | E) echo "Option '$opt' not supported by shim"; exit 1;;
-	    esac
+        case $opt in
+            e) lua_expr=$OPTARG;;
+            v) nvim --version; exit;;
+            i | l | E) echo "Option '$opt' not supported by shim"; exit 1;;
+        esac
     done
 
-    # We need to add this plugin to the custom configuration.  The easiest way
-    # is to create a symlink.  Why not always have a symlink in the project?
-    # The Lua language server will search for Lua files in every directory, so
-    # if it enters the symlink it will be trapped in a cycle.  What we do
-    # instead is create the symlink only for the duration of a test session
-    # and remove it again afterwards.
-
-    # We need separate symlinks if we want to run different tasks in parallel.
-    # Otherwise the one the finishes first would delete the symlink from
-    # underneath the one that is still running.
-    uuid=$(uuidgen)
-    mkdir -p ${XDG_DATA_HOME}/nvim/site/pack/self-${uuid}/start/
-    ln -fs $(pwd) ${XDG_DATA_HOME}/nvim/site/pack/self-${uuid}/start/
-
     if [ -n "$lua_expr" ]; then
-	    nvim --headless -c "lua $lua_expr" -c 'quitall!'
+        nvim --headless -c "lua $lua_expr" -c 'quitall!'
     else
-	    # We have to explicitly enable plugins, see ':h -l'
-	    nvim --cmd 'set loadplugins' -l $@
+        # We have to explicitly enable plugins and user configuration, see ':h -l'
+        if [ -r ${XDG_CONFIG_HOME}/nvim/init.lua ]; then
+            nvim --cmd 'set loadplugins' -u "${XDG_CONFIG_HOME}/nvim/init.lua" -l $@
+        elif [ -r ${XDG_CONFIG_HOME}/nvim/init.vim ]; then
+            nvim --cmd 'set loadplugins' -u "${XDG_CONFIG_HOME}/nvim/init.vim" -l $@
+        else
+            nvim --cmd 'set loadplugins' -l $@
+        fi
     fi
 
     exit_code=$?
-
-    rm -rf ${XDG_DATA_HOME}/nvim/site/pack/self-${uuid}/
 
     exit $exit_code
 <
@@ -264,6 +257,13 @@ points.
     • Run Neovim
     • Clean up
 
+This will set up an isolated Neovim configuration and data environment under
+`test/xdg` to make sure your personal configuration and data do not interfere
+with the test.  You probably want to use your plugin within the tests, so you
+will have to add this like to `test/xdg/config/nvim/init.lua`:
+>lua
+    vim.opt.runtimepath:append(vim.fn.getcwd())
+<
 This shim is a good starting point, but you might have to adjust it to your
 needs depending on your project.  With this out of the way we can set up the
 project structure.
@@ -273,8 +273,9 @@ project structure.
     ├── lua
     │   └── incrementor.lua
     └── test
-        ├── busted (the busted shim)
-        ├── nvim   (the Neovim shim)
+        ├── bin
+        │   ├── busted  (the busted shim)
+        │   └── lua     (the Neovim Lua shim)
         └── unit
             └── incrementor_spec.lua
 <
@@ -285,13 +286,14 @@ busted for Lua 5.1, so my shim looks like this:
     #!/bin/sh
     eval $(luarocks path --lua-version 5.1 --bin) && busted $@
 <
-Set the |g:bustedprg| variable to `'./test/busted'` to use this shim.  The
-other file contents are as follows:
+Set the |g:bustedprg| variable to the path of the shim (in my case
+`'./test/bin/busted'`) to use this shim.  The other file contents are as
+follows:
 
     • Configuration file `.busted`: >lua
         return {
             _all = {
-                lua = './test/nvim'
+                lua = './test/bin/lua'  -- Path to my Neovim Lua shim
             },
             unit = {
                 ROOT = {'test/unit'},
@@ -343,6 +345,10 @@ Busted home page:
 
 Neotest repository:
     https://github.com/nvim-neotest/neotest
+
+nvim-busted-shims repository
+    https://gitlab.com/HiPhish/nvim-busted-shims
+    https://github.com/HiPhish/nvim-busted-shims (mirror)
 
 nlua repository:
     https://github.com/mfussenegger/nlua
