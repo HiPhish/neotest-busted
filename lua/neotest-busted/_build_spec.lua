@@ -1,5 +1,7 @@
 ---@module "neotest"
 
+---@module "dap"
+
 local conf = require('neotest-busted._conf')
 
 ---Collects the name of a node and all its ancestors in order from outer-most
@@ -39,21 +41,44 @@ local function build_spec(args)
     :flatten()
     :totable()
 
+  local additional_args = {
+    '--defer-print',
+  }
   -- The user has selected a specific node inside the file
   if type == 'test' or type == 'namespace' then
-    -- Names joined by space, from outer-most to inner-most
     local filter = table.concat(collect_node_names(tree, {}), ' ')
-    -- Escape special characters
     filter = filter:gsub('%%', '%%%%'):gsub('%s', '%%s'):gsub('-', '%%-')
+    -- Names joined by space, from outer-most to inner-most
+    -- Escape special characters
 
-    vim.list_extend(command, { '--filter', filter })
+    vim.list_extend(additional_args, { '--filter', filter })
   end
 
   local _, _, bustedrc = conf.get()
-  vim.list_extend(command, { '--config-file', bustedrc, data.path })
+  vim.list_extend(additional_args, { '--config-file', bustedrc, data.path })
 
+  local strategy_config
+  if args.strategy == 'dap' then
+    ---@type dap.Configuration
+    strategy_config = {
+      name = 'Neotest Busted Test',
+      type = 'local-lua',
+      request = 'launch',
+      cwd = '${workspaceFolder}',
+      program = {
+        command = 'busted',
+      },
+      args = vim.list_extend({
+        '-e',
+        '"require(\'lldebugger\').start()"',
+      }, additional_args),
+    }
+  end
+
+  vim.list_extend(command, additional_args)
   return {
     command = command,
+    strategy = strategy_config,
   }
 end
 
