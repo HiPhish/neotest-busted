@@ -9,8 +9,7 @@
 Testing Neotest-Busted
 ######################
 
-Ironically this plugin cannot be testing using Neotest.  The pull request
-`#374`_ needs to be merged first.
+This plugin can be tested using Neotest if everything has been set up correctly.
 
 
 Taking a new sample
@@ -43,6 +42,3 @@ How to generate the samples found in `test/unit/samples/`
    object.
 3. Replace all references to `throwaway.lua` with `tempname`.
 4. Sort the table entries to your liking
-
-
-.. _`#374`: https://github.com/nvim-neotest/neotest/pull/374
