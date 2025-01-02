@@ -32,9 +32,12 @@ local function build_spec(args)
   local data = tree:data()
   local type = data.type
 
-  local command = {
-    vim.g.bustedprg or 'busted',
-  }
+  local command = vim
+    .iter({
+      vim.g.bustedprg or 'busted',
+    })
+    :flatten()
+    :totable()
 
   local additional_args = {
     '--output',
