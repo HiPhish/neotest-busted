@@ -32,16 +32,13 @@ local function build_spec(args)
   local data = tree:data()
   local type = data.type
 
-  local command = vim
-    .iter({
-      vim.g.bustedprg or 'busted',
-      '--output',
-      'json',
-    })
-    :flatten()
-    :totable()
+  local command = {
+    vim.g.bustedprg or 'busted',
+  }
 
   local additional_args = {
+    '--output',
+    'json',
     '--defer-print',
   }
   -- The user has selected a specific node inside the file
@@ -71,6 +68,8 @@ local function build_spec(args)
       args = vim.list_extend({
         '-e',
         '"require(\'lldebugger\').start()"',
+        '-o',
+        'json',
       }, additional_args),
     }
   end
