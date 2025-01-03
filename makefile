@@ -33,6 +33,8 @@ unit-test:
 integration-test:
 	@./test/bin/busted --run integration
 
+test: unit-test integration-test
+
 clean:
 	@# Delete everything except for the trust file
 	@for f in test/xdg/local/state/nvim/*; do ([ "$$(basename $$f)" != 'trust' ] && rm -r "$$f") || true; done

@@ -66,10 +66,11 @@ return function(args)
 	local data = tree:data()
 	local type = data.type
 
+	local output_handler_path = require 'neotest-busted._output-handler'.source
 	local command = vim.tbl_flatten {
 		vim.g.bustedprg or 'busted',
 		'--output',
-		'json'
+		output_handler_path
 	}
 
 	-- The user has selected a specific node inside the file
