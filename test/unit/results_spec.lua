@@ -21,8 +21,10 @@ describe('Result from running busted', function()
 	local testfile
 
 	---@param sample string  Name of the sample file (without path or extension)
+	---@param pre string|nil Text to prepend results
+	---@param post string|nil text to append to results
 	---@return table<string, neotest.Result>, table<string, neotest.Result>
-	local function compute_test_results(sample)
+	local function compute_test_results(sample, pre, post)
 		local sample_file = string.format('test/unit/samples/%s.lua', sample)
 		local content, output, spec, expected, descend = loadfile(sample_file)()(testfile)
 
@@ -44,7 +46,14 @@ describe('Result from running busted', function()
 
 		-- We need to write the output to an actual file for the `results`
 		-- function
-		vim.fn.writefile({vim.json.encode(output)}, strategy_result.output, 's')
+		if pre then
+			vim.fn.writefile({pre}, strategy_result.output, 's')
+		end
+		local marker = require('neotest-busted._output-handler').marker
+		vim.fn.writefile({marker .. vim.json.encode(output)}, strategy_result.output, 'as')
+		if post then
+			vim.fn.writefile({post}, strategy_result.output, 'as')
+		end
 
 		local results = adapter.results(spec, strategy_result, tree)
 		return expected, results
@@ -121,6 +130,14 @@ describe('Result from running busted', function()
 
 	it('Strips escape sequences from output', function()
 		local expected, results = compute_test_results('error-msg-with-esc-seq')
+		assert.are.same(expected, results)
+	end)
+
+	it('Handles multiple lines output', function()
+		local expected, results = compute_test_results('single-standalone-success', 'prepend\n', '\nappend')
+		assert.are.same(expected, results)
+
+		expected, results = compute_test_results('single-standalone-error', 'prepend', 'append')
 		assert.are.same(expected, results)
 	end)
 end)

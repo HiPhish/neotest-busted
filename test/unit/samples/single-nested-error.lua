@@ -1,6 +1,7 @@
 -- Test file containing a single test nested inside a namespace which always
 -- raises an error.
 
+local output_handler = require 'neotest-busted._output-handler'.source
 
 local types = require 'neotest.types'
 
@@ -70,7 +71,7 @@ return function(tempfile)
 	}
 
 	local spec = {
-		command = {'busted', '--output', 'json', '--', tempfile}
+		command = {'busted', '--output', output_handler, '--', tempfile}
 	}
 
 	return content, output, spec, expected_results
