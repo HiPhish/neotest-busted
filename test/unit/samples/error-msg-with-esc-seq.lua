@@ -1,5 +1,6 @@
 -- Failure where the error message contains escape sequences
 
+local output_handler_path = require 'neotest-busted._output-handler'.source
 
 local types = require 'neotest.types'
 
@@ -66,7 +67,7 @@ return function(tempfile)
 	}
 
 	local spec = {
-		command = {'busted', '--output', 'json', '--', tempfile}
+		command = { 'busted', '--output', output_handler_path, '--', tempfile }
 	}
 
 	return content, output, spec, expected_results
