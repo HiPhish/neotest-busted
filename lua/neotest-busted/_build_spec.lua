@@ -69,7 +69,7 @@ return function(args)
 	local command = vim.tbl_flatten {
 		vim.g.bustedprg or 'busted',
 		'--output',
-		'json'
+		require('neotest-busted._output-handler').source
 	}
 
 	-- The user has selected a specific node inside the file

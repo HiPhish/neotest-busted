@@ -1,5 +1,6 @@
 -- A parent `before_each` throws an error
 
+local output_handler = require 'neotest-busted._output-handler'.source
 
 local types = require 'neotest.types'
 
@@ -71,7 +72,7 @@ return function(tempfile)
 	}
 
 	local spec = {
-		command = {'busted','--output', 'json',  '--filter', 'Arithmetic%sAdditive%sAdds%stwo%snumbers', '--', tempfile}
+		command = {'busted', '--output', output_handler, '--filter', 'Arithmetic%sAdditive%sAdds%stwo%snumbers', '--', tempfile}
 	}
 
 	return content, output, spec, expected_results, {1, 2}

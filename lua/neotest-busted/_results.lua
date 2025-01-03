@@ -10,9 +10,17 @@ local writefile = vim.fn.writefile
 ---@param path string  Path to file containing JSON output
 ---@return table output  Arbitrary JSON data from the output
 local function decode_result_output(path)
-	-- Assumption: the output will be all one line.  There might be other junk
-	-- on subsequent lines and we don't want that.
-	local result = vim.json.decode(vim.fn.readfile(path)[1])
+	local marker = require('neotest-busted._output-handler').marker
+	local lines = vim.fn.readfile(path)
+
+	-- NOTE: Searching backwards because there might be a line of regular text
+	-- output which happens to have the same prefix.  We want only the last
+	-- matching line.
+	local line = vim.iter(lines)
+		:rev()
+		:find(function(l) return vim.startswith(l, marker) end)
+		:sub(#marker + 1)
+	local result = vim.json.decode(line)
 
 	-- Write a human-readable representation of the test result to the output
 	-- file. The output file contains JSON which we convert into regular text.

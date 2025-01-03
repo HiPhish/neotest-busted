@@ -1,10 +1,11 @@
-local adapter = require 'neotest-busted'
-local conf    = require 'neotest-busted._conf'
-local nio = require 'nio'
-local types = require 'neotest.types'
+local adapter        = require 'neotest-busted'
+local conf           = require 'neotest-busted._conf'
+local nio            = require 'nio'
+local types          = require 'neotest.types'
+local output_handler = require 'neotest-busted._output-handler'.source
 
-local split = vim.fn.split
-local writefile = vim.fn.writefile
+local split          = vim.fn.split
+local writefile      = vim.fn.writefile
 
 
 describe('Building the test run specification', function()
@@ -26,11 +27,11 @@ describe('Building the test run specification', function()
 		return assert(adapter.build_spec(args))
 	end
 
-	before_each(function()  -- Create temporary file
+	before_each(function() -- Create temporary file
 		tempfile = vim.fn.tempname() .. '.lua'
 	end)
 
-	after_each(function()  -- Delete temporary file
+	after_each(function() -- Delete temporary file
 		if vim.fn.filereadable(tempfile) ~= 0 then
 			vim.fn.delete(tempfile)
 		end
@@ -55,7 +56,13 @@ describe('Building the test run specification', function()
 			return add(x, y)
 		]]
 
-		local expected = {'busted', '--output', 'json', '--', tempfile}
+		local expected = {
+			'busted',
+			'--output',
+			output_handler,
+			'--',
+			tempfile,
+		}
 		assert.are.same(expected, spec.command)
 	end)
 
@@ -69,9 +76,13 @@ describe('Building the test run specification', function()
 		local spec = build_spec(content, key)
 
 		local expected = {
-			'busted', '--output', 'json', '--filter',
+			'busted',
+			'--output',
+			output_handler,
+			'--filter',
 			'Fulfills%sa%stautology,%sa%sself%-evident%s100%%%strue%sstatement',
-			'--', tempfile
+			'--',
+			tempfile,
 		}
 		assert.are.same(expected, spec.command)
 	end)
@@ -90,8 +101,13 @@ describe('Building the test run specification', function()
 		local spec = build_spec(content, tempfile .. '::Arithmetic')
 
 		local expected = {
-			'busted', '--output', 'json', '--filter', 'Arithmetic',
-			'--', tempfile
+			'busted',
+			'--output',
+			output_handler,
+			'--filter',
+			'Arithmetic',
+			'--',
+			tempfile,
 		}
 		assert.are.same(expected, spec.command)
 	end)
@@ -110,9 +126,13 @@ describe('Building the test run specification', function()
 		local spec = build_spec(content, tempfile .. '::Arithmetic::Adds two numbers')
 
 		local expected = {
-			'busted', '--output', 'json',
-			'--filter', 'Arithmetic%sAdds%stwo%snumbers',
-			'--', tempfile
+			'busted',
+			'--output',
+			output_handler,
+			'--filter',
+			'Arithmetic%sAdds%stwo%snumbers',
+			'--',
+			tempfile,
 		}
 		assert.are.same(expected, spec.command)
 	end)
@@ -153,14 +173,30 @@ describe('Building the test run specification', function()
 				end)
 			]]
 
-			local expected = {'busted', '--output', 'json', '--run', 'unit', '--', tempfile}
+			local expected = {
+				'busted',
+				'--output',
+				output_handler,
+				'--run',
+				'unit',
+				'--',
+				tempfile,
+			}
 			assert.are.same(expected, spec.command)
 		end)
 
 		it('Specifies the bustedrc file', function()
 			conf.set({_all = {verbose = true}}, 'bustedrc')
 			local spec = build_spec ''
-			local expected = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--', tempfile}
+			local expected = {
+				'busted',
+				'--output',
+				output_handler,
+				'--config-file',
+				'bustedrc',
+				'--',
+				tempfile,
+			}
 			assert.are.same(expected, spec.command)
 		end)
 	end)
@@ -173,14 +209,27 @@ describe('Building the test run specification', function()
 		it('Uses the custom executable', function()
 			vim.g.bustedprg = './test/busted'
 			local spec = build_spec ''
-			local expected = {'./test/busted', '--output', 'json', '--', tempfile}
+			local expected = {
+				'./test/busted',
+				'--output',
+				output_handler,
+				'--',
+				tempfile,
+			}
 			assert.are.same(expected, spec.command)
 		end)
 
 		it('Splices in a custom busted command list', function()
 			vim.g.bustedprg = {'busted', '--verbose'}
 			local spec = build_spec ''
-			local expected = {'busted', '--verbose', '--output', 'json', '--', tempfile}
+			local expected = {
+				'busted',
+				'--verbose',
+				'--output',
+				output_handler,
+				'--',
+				tempfile,
+			}
 			assert.are.same(expected, spec.command)
 		end)
 	end)
@@ -210,8 +259,8 @@ describe('Building the test run specification', function()
 
 		it('Runs all tasks with matching roots', function()
 			local expected = {
-				{command = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--run', 'integration', '--', 'test/integration'}},
-				{command = {'busted', '--output', 'json', '--config-file', 'bustedrc', '--run', 'unit', '--', 'test/unit'}},
+				{command = {'busted', '--output', output_handler, '--config-file', 'bustedrc', '--run', 'integration', '--', 'test/integration'}},
+				{command = {'busted', '--output', output_handler, '--config-file', 'bustedrc', '--run', 'unit', '--', 'test/unit'}},
 			}
 
 			-- A directory tree which contains two more directory trees which
@@ -242,8 +291,8 @@ describe('Building the test run specification', function()
 								path = 'test/integration/foo_spec.lua',
 								range = {0, 0, 4, 0},
 								type = 'test',
-							}
-						}
+							},
+						},
 					},
 				}, {
 					{
@@ -265,20 +314,19 @@ describe('Building the test run specification', function()
 								path = 'test/unit/foo_spec.lua',
 								range = {0, 0, 4, 0},
 								type = 'test',
-							}
+							},
 						}
 					},
-
 				}
 			}
 			local dir_tree = types.Tree.from_list(t, function(pos) return pos.id end)
-			local spec = assert(adapter.build_spec {tree = dir_tree, strategy = 'integrated'})
+			local spec = assert(adapter.build_spec { tree = dir_tree, strategy = 'integrated' })
 
 			-- NOTE: The order of specifications is undefined, so we need to
 			-- explicitly sort the two list.
 			local function comp(t1, t2) return t1.command[7] < t2.command[7] end
 			table.sort(expected, comp)
-			table.sort(spec    , comp)
+			table.sort(spec,     comp)
 			assert.are.same(expected, spec)
 		end)
 	end)
