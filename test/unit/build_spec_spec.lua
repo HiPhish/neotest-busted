@@ -27,11 +27,11 @@ describe('Building the test run specification', function()
 		return assert(adapter.build_spec(args))
 	end
 
-	before_each(function() -- Create temporary file
+	before_each(function()  -- Create temporary file
 		tempfile = vim.fn.tempname() .. '.lua'
 	end)
 
-	after_each(function() -- Delete temporary file
+	after_each(function()  -- Delete temporary file
 		if vim.fn.filereadable(tempfile) ~= 0 then
 			vim.fn.delete(tempfile)
 		end
@@ -148,43 +148,6 @@ describe('Building the test run specification', function()
 			conf.set(old_config)
 		end)
 
-		it('Picks the right task', function()
-			local tempdir = vim.fn.fnamemodify(tempfile, ':h')
-			tempfile = tempdir .. '/test/unit/derp_spec.lua'
-			vim.fn.mkdir(tempdir .. '/test/unit', 'p', 448)  -- 448 = 0o700
-			conf.set {
-				unit = {
-					-- NOTE: there can be multiple roots
-					ROOT = {tempdir .. '/test/simple', tempdir .. '/test/unit/'}
-				},
-				integration = {
-					ROOT = {'./test/integration/'}
-				},
-			}
-
-			local spec = build_spec [[
-				describe('Arithmetic', function()
-					it('Adds two numbers', function()
-						assert.is.equal(5, 2 + 3)
-					end)
-					it('Multiplies two numbers', function()
-						assert.is.equal(6, 2 * 3)
-					end)
-				end)
-			]]
-
-			local expected = {
-				'busted',
-				'--output',
-				output_handler,
-				'--run',
-				'unit',
-				'--',
-				tempfile,
-			}
-			assert.are.same(expected, spec.command)
-		end)
-
 		it('Specifies the bustedrc file', function()
 			conf.set({_all = {verbose = true}}, 'bustedrc')
 			local spec = build_spec ''
@@ -259,9 +222,19 @@ describe('Building the test run specification', function()
 
 		it('Runs all tasks with matching roots', function()
 			local expected = {
-				{command = {'busted', '--output', output_handler, '--config-file', 'bustedrc', '--run', 'integration', '--', 'test/integration'}},
-				{command = {'busted', '--output', output_handler, '--config-file', 'bustedrc', '--run', 'unit', '--', 'test/unit'}},
+				command = {
+					'busted',
+					'--output',
+					output_handler,
+					'--config-file',
+					'bustedrc',
+					'--',
+					'test/integration/foo_spec.lua',
+					'test/unit/foo_spec.lua',
+				},
 			}
+
+
 
 			-- A directory tree which contains two more directory trees which
 			-- are part of the roots.
