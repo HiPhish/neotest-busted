@@ -63,10 +63,10 @@ local function build_spec(args)
 
 	local _, _, bustedrc = conf.get()
 	if bustedrc then
-		vim.list_extend(additional_args, { '--config-file', bustedrc })
+		vim.list_extend(additional_args, {'--config-file', bustedrc})
 	end
 
-	vim.list_extend(additional_args, { '--' })
+	vim.list_extend(additional_args, {'--'})
 	local roots = get_roots(tree)
 	if #roots == 0 then
 		return nil
