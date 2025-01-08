@@ -38,6 +38,10 @@ return {
 		ROOT = {'./test/integration/'},
 		pattern = '',  -- No fancy pattern for integration tests
 	},
+	e2e={
+		ROOT={'./test/e2e/'},
+		pattern='',
+	}
 }
 
 -- vim:ft=lua

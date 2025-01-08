@@ -25,7 +25,7 @@
 
 .PHONY: check unit-test clean
 
-check: unit-test integration-test
+check: unit-test integration-test end-to-end-test
 
 unit-test:
 	@./test/bin/busted --run unit
@@ -33,7 +33,8 @@ unit-test:
 integration-test:
 	@./test/bin/busted --run integration
 
-test: unit-test integration-test
+end-to-end-test:
+	@./test/bin/nvim --headless -c "set loadplugins" -c "luafile ./scripts/e2e.lua"
 
 clean:
 	@# Delete everything except for the trust file

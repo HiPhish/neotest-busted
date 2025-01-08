@@ -140,4 +140,10 @@ describe('Result from running busted', function()
 		expected, results = compute_test_results('single-standalone-error', 'prepend', 'append')
 		assert.are.same(expected, results)
 	end)
+
+	it('Picks last line with marker', function()
+		local marker = require('neotest-busted._output-handler').marker
+		local expected, results = compute_test_results('single-standalone-error', marker..'some text', 'append')
+		assert.are.same(expected, results)
+	end)
 end)
